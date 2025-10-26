@@ -1,0 +1,25 @@
+# Test files
+tests/
+*.test.js
+
+# Development files
+.git/
+.github/
+.vscode/
+node_modules/
+
+# CI/CD
+.github/
+
+# Documentation (except README)
+docs/
+
+# Build artifacts
+coverage/
+.nyc_output/
+
+# Editor files
+.DS_Store
+*.swp
+*.swo
+*~
