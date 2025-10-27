@@ -1,17 +1,21 @@
 # eslint-plugin-mui-v7
 
-> ESLint plugin for Material-UI v7 with educational and friendly error messages
+> ESLint plugin focused on Material-UI V6 to V7 **breaking changes** with educational error messages
 
-Automatically detect incorrect usage of Material-UI V7 and teach developers the right way through helpful messages with emojis and examples!
+Automatically detect code that **BREAKS** when migrating from MUI V6 to V7 and teach developers the correct way through helpful messages with emojis and examples!
+
+## 🎯 Philosophy
+
+This plugin focuses on **breaking changes only** - code that will actually break when upgrading to V7. We don't warn about best practices or style preferences, just things that will cause errors.
 
 ## ✨ Features
 
-- ❌ **Detect deprecated deep imports** - No more `import createTheme from '@mui/material/styles/createTheme'`
-- ❌ **Catch Grid2 usage** - Grid2 was renamed to Grid in V7
-- ❌ **Find moved @mui/lab components** - Alert, Skeleton, Rating, etc. are now in @mui/material
-- ❌ **Detect deprecated props** - onBackdropClick, size="normal", Hidden component
-- ❌ **Grid item prop detection** - Grid doesn't use `item` prop anymore, use `size` instead
-- ⚠️ **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support
+- 🚀 **Detect Unstable_Grid2 usage** - Now promoted to stable Grid
+- ⚠️ **Catch Grid2 usage** - Grid2 was renamed to Grid in V7
+- 🎯 **Grid item prop detection** - Grid doesn't use `item` prop anymore, use `size` instead
+- ✨ **Find moved @mui/lab components** - Alert, Skeleton, Rating, etc. are now in @mui/material
+- 🔄 **Detect deprecated props** - onBackdropClick, size="normal", Hidden component
+- 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
 - 🔧 **Auto-fix available** for most rules!
 
 ## 📦 Installation
@@ -20,9 +24,20 @@ Automatically detect incorrect usage of Material-UI V7 and teach developers the 
 npm install --save-dev eslint-plugin-mui-v7
 ```
 
-## 🚀 Usage
+## 🚀 Quick Start
 
-### ESLint 9+ (Flat Config)
+### ESLint 9+ (Flat Config) - Recommended
+
+```javascript
+// eslint.config.js
+import muiV7Plugin from 'eslint-plugin-mui-v7'
+
+export default [
+  muiV7Plugin.configs.recommended, // ✅ Apply all recommended rules
+]
+```
+
+### Manual Configuration
 
 ```javascript
 // eslint.config.js
@@ -34,15 +49,14 @@ export default [
       'mui-v7': muiV7Plugin,
     },
     rules: {
-      // Errors (block code)
-      'mui-v7/no-deep-imports': 'error',
+      // Breaking changes - ERRORS (código quebra)
+      'mui-v7/no-unstable-grid': 'error',
       'mui-v7/no-grid2-import': 'error',
-      'mui-v7/no-lab-imports': 'error',
       'mui-v7/no-grid-item-prop': 'error',
+      'mui-v7/no-lab-imports': 'error',
       'mui-v7/no-deprecated-props': 'error',
 
-      // Warnings (suggest improvements)
-      'mui-v7/no-old-grid-import': 'warn',
+      // Best practices - WARNINGS (sugestões)
       'mui-v7/prefer-theme-vars': 'warn',
     },
   },
@@ -56,42 +70,33 @@ export default [
 module.exports = {
   plugins: ['mui-v7'],
   rules: {
-    'mui-v7/no-deep-imports': 'error',
+    'mui-v7/no-unstable-grid': 'error',
     'mui-v7/no-grid2-import': 'error',
-    'mui-v7/no-lab-imports': 'error',
     'mui-v7/no-grid-item-prop': 'error',
+    'mui-v7/no-lab-imports': 'error',
     'mui-v7/no-deprecated-props': 'error',
-    'mui-v7/no-old-grid-import': 'warn',
     'mui-v7/prefer-theme-vars': 'warn',
   },
 }
 ```
 
-### Using Recommended Config
-
-```javascript
-// eslint.config.js
-import muiV7Plugin from 'eslint-plugin-mui-v7'
-
-export default [
-  muiV7Plugin.configs.recommended, // Applies all recommended rules
-]
-```
-
 ## 📋 Rules
 
-### 🚨 Error Rules (Must Fix)
+### 🚨 Breaking Changes (Errors)
 
-#### `mui-v7/no-deep-imports`
+These rules detect code that **WILL BREAK** in MUI V7.
 
-Deep imports with more than one level are not supported in MUI V7.
+#### `mui-v7/no-unstable-grid` ✨ NEW in v1.1.0
+
+Unstable_Grid2 was promoted to stable Grid in V7.
 
 ```typescript
-// ❌ Bad
-import createTheme from '@mui/material/styles/createTheme'
+// ❌ Breaks in V7
+import Grid from '@mui/material/Unstable_Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 
-// ✅ Good
-import { createTheme } from '@mui/material/styles'
+// ✅ Recommended
+import { Grid } from '@mui/material'
 ```
 
 #### `mui-v7/no-grid2-import`
@@ -99,11 +104,29 @@ import { createTheme } from '@mui/material/styles'
 Grid2 was renamed to Grid in V7.
 
 ```typescript
-// ❌ Bad
+// ❌ Breaks in V7
 import Grid2 from '@mui/material/Grid2'
+import { grid2Classes } from '@mui/material/Grid2'
 
-// ✅ Good
-import Grid from '@mui/material/Grid'
+// ✅ Recommended
+import { Grid } from '@mui/material'
+import { gridClasses } from '@mui/material'
+```
+
+#### `mui-v7/no-grid-item-prop`
+
+Grid doesn't use `item` prop anymore, use `size` instead.
+
+```typescript
+// ❌ Breaks in V7
+<Grid item xs={12} sm={6} md={4}>
+  Content
+</Grid>
+
+// ✅ Works in V7
+<Grid size={{ xs: 12, sm: 6, md: 4 }}>
+  Content
+</Grid>
 ```
 
 #### `mui-v7/no-lab-imports`
@@ -111,90 +134,64 @@ import Grid from '@mui/material/Grid'
 Components moved from @mui/lab to @mui/material.
 
 ```typescript
-// ❌ Bad
-import Alert from '@mui/lab/Alert'
-import Skeleton from '@mui/lab/Skeleton'
+// ❌ Breaks in V7
+import { Alert } from '@mui/lab'
+import { Skeleton } from '@mui/lab'
 
-// ✅ Good
-import Alert from '@mui/material/Alert'
-import Skeleton from '@mui/material/Skeleton'
+// ✅ Recommended
+import { Alert } from '@mui/material'
+import { Skeleton } from '@mui/material'
 ```
 
 **Moved components:** Alert, AlertTitle, Autocomplete, AvatarGroup, Pagination, PaginationItem, Rating, Skeleton, SpeedDial, SpeedDialAction, SpeedDialIcon, TabContext, TabList, TabPanel, Timeline*, ToggleButton, ToggleButtonGroup, TreeView, TreeItem
 
-#### `mui-v7/no-grid-item-prop`
-
-Grid doesn't use `item` prop anymore, use `size` instead.
-
-```typescript
-// ❌ Bad
-<Grid item xs={12} md={6}>
-  Content
-</Grid>
-
-// ✅ Good
-<Grid size={{ xs: 12, md: 6 }}>
-  Content
-</Grid>
-```
-
 #### `mui-v7/no-deprecated-props`
 
-Detects deprecated props in various components.
+Detects props removed in V7.
 
 ```typescript
-// ❌ Bad: Dialog.onBackdropClick
+// ❌ Dialog.onBackdropClick - REMOVED
 <Dialog onBackdropClick={handleClick}>
 
-// ✅ Good
+// ✅ Use onClose with reason check
 <Dialog onClose={(event, reason) => {
   if (reason === 'backdropClick') {
     // Your logic here
   }
 }}>
 
-// ❌ Bad: InputLabel size="normal"
+// ❌ InputLabel size="normal" - RENAMED
 <InputLabel size="normal">
 
-// ✅ Good
+// ✅ Use size="medium"
 <InputLabel size="medium">
 
-// ❌ Bad: Hidden component
+// ❌ Hidden component - REMOVED
 <Hidden xlUp><Paper /></Hidden>
 
-// ✅ Good: Use sx prop
+// ✅ Use sx prop
 <Paper sx={{ display: { xl: 'none' } }} />
 
-// ✅ Good: Use useMediaQuery
+// ✅ Or use useMediaQuery
 const hidden = useMediaQuery(theme => theme.breakpoints.up('xl'))
 return hidden ? null : <Paper />
 ```
 
-### ⚠️ Warning Rules (Suggestions)
+### 💡 Best Practices (Warnings)
 
-#### `mui-v7/no-old-grid-import`
-
-Suggests migrating from old Grid to the new one.
-
-```typescript
-// ⚠️ If you want to keep old Grid
-import Grid from '@mui/material/GridLegacy'
-
-// ✅ Recommended: Migrate to new Grid
-import Grid from '@mui/material/Grid'
-```
+These are suggestions, not breaking changes.
 
 #### `mui-v7/prefer-theme-vars`
 
-When using `cssVariables: true`, use `theme.vars.*` for automatic dark mode support.
+When using `cssVariables: true`, use `theme.vars.*` for better performance and automatic dark mode.
 
 ```typescript
-// ⚠️ Warning (doesn't change with dark mode)
+// ⚠️ Works but doesn't change with dark mode automatically
 const Custom = styled('div')(({ theme }) => ({
   color: theme.palette.text.primary,
 }))
 
-// ✅ Good (changes automatically with dark mode)
+// ✅ Better: Changes automatically with dark mode
 const Custom = styled('div')(({ theme }) => ({
   color: theme.vars.palette.text.primary,
 }))
@@ -214,40 +211,72 @@ The plugin provides educational messages with emojis and examples:
    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
 
 💡 A nova sintaxe é mais limpa e poderosa!
-   Você pode usar offset, push, pull e mais.
+   Você pode usar: size, offset, spacing responsivo e mais.
 ```
 
-## 🔧 Configuration Options
+## 🔧 Configuration Presets
 
-### Severity Levels
+### `recommended` - Balanced (Default)
 
-```javascript
-rules: {
-  'mui-v7/no-deep-imports': 'error',  // Blocks code
-  'mui-v7/no-deep-imports': 'warn',   // Shows warning
-  'mui-v7/no-deep-imports': 'off',    // Disables rule
-}
-```
-
-### Recommended Config
+Breaking changes as **errors**, best practices as **warnings**.
 
 ```javascript
 import muiV7Plugin from 'eslint-plugin-mui-v7'
 
 export default [
-  muiV7Plugin.configs.recommended, // All errors + warnings
+  muiV7Plugin.configs.recommended,
 ]
 ```
 
-### Strict Config
+### `strict` - Strict Mode
+
+Everything as **errors** (including best practices).
 
 ```javascript
 import muiV7Plugin from 'eslint-plugin-mui-v7'
 
 export default [
-  muiV7Plugin.configs.strict, // Everything as error
+  muiV7Plugin.configs.strict,
 ]
 ```
+
+## 🆕 What's New in v1.1.0
+
+### Added
+- ✨ New rule `no-unstable-grid` - Detects Unstable_Grid2 usage
+
+### Changed
+- 📝 All import examples now show recommended style: `import { Grid } from '@mui/material'`
+- 🎯 Refocused on breaking changes only (removed non-breaking rules)
+- 📦 Updated plugin description and categories
+
+### Removed
+- ❌ `no-deep-imports` - Not a breaking change in V7
+- ❌ `no-old-grid-import` - Confusing and not a breaking change
+
+## 📚 Migration Guide
+
+1. Install the plugin:
+```bash
+npm install --save-dev eslint-plugin-mui-v7
+```
+
+2. Add to your ESLint config:
+```javascript
+// eslint.config.js
+import muiV7Plugin from 'eslint-plugin-mui-v7'
+
+export default [
+  muiV7Plugin.configs.recommended,
+]
+```
+
+3. Run ESLint:
+```bash
+npx eslint . --fix
+```
+
+4. Fix remaining issues manually (the plugin will guide you!)
 
 ## 🤝 Contributing
 
@@ -269,4 +298,4 @@ Created by **Matheus Pimenta** (Koda AI Studio) + **Claude Code**
 
 ---
 
-**Keywords:** eslint, mui, material-ui, mui-v7, react, typescript, linter, code-quality
+**Keywords:** eslint, mui, material-ui, mui-v7, react, typescript, linter, code-quality, migration, breaking-changes

@@ -1,28 +1,32 @@
 /**
- * ESLint Plugin Customizado para MUI V7 (CommonJS version)
+ * ESLint Plugin para MUI V7 - Foca em Breaking Changes (CommonJS version)
  *
- * Detecta automaticamente usos incorretos do Material-UI V7 e fornece
- * mensagens educativas para ensinar a forma correta.
+ * Detecta automaticamente código que QUEBRA na migração V6 → V7
+ * e fornece mensagens educativas para corrigir.
  *
+ * @version 1.1.0
  * @created 2025-01-26
+ * @updated 2025-01-27
  * @author Matheus (Koda AI Studio) + Claude Code
  */
 
 const muiV7Rules = {
-  'no-deep-imports': {
+  'no-unstable-grid': {
     meta: {
       type: 'problem',
       docs: {
-        description: 'Proíbe deep imports (mais de um nível) do MUI V7',
-        category: 'Best Practices',
+        description: 'Unstable_Grid2 foi promovido para Grid no MUI V7',
+        category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
-        deepImport: '❌ Deep imports não são mais suportados no MUI V7.\n\n' +
-          '🔧 Forma incorreta:\n' +
-          '   import createTheme from "@mui/material/styles/createTheme"\n\n' +
-          '✅ Forma correta:\n' +
-          '   import { createTheme } from "@mui/material/styles"',
+        unstableGrid: '🚀 Unstable_Grid2 foi promovido para Grid estável no MUI V7!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   import Grid from "@mui/material/Unstable_Grid2"\n' +
+          '   import Grid2 from "@mui/material/Unstable_Grid2"\n\n' +
+          '✅ Forma nova (V7):\n' +
+          '   import { Grid } from "@mui/material"\n\n' +
+          '💡 O Grid agora é estável e usa a prop `size`!',
       },
       schema: [],
       fixable: 'code',
@@ -32,30 +36,14 @@ const muiV7Rules = {
         ImportDeclaration(node) {
           const source = node.source.value;
 
-          // Detecta imports com mais de um nível (ex: @mui/material/styles/createTheme)
-          if (source.startsWith('@mui/')) {
-            const parts = source.split('/');
-            // @mui/material/styles/createTheme -> 4 partes (deep import)
-            // @mui/material/styles -> 3 partes (OK)
-            if (parts.length > 3) {
-              context.report({
-                node,
-                messageId: 'deepImport',
-                fix(fixer) {
-                  // Tenta converter para named import
-                  const specifier = node.specifiers[0];
-                  if (specifier && specifier.type === 'ImportDefaultSpecifier') {
-                    const importName = specifier.local.name;
-                    const newPath = parts.slice(0, 3).join('/'); // Remove último nível
-                    return fixer.replaceText(
-                      node,
-                      `import { ${importName} } from "${newPath}"`
-                    );
-                  }
-                  return null;
-                },
-              });
-            }
+          if (source === '@mui/material/Unstable_Grid2') {
+            context.report({
+              node,
+              messageId: 'unstableGrid',
+              fix(fixer) {
+                return fixer.replaceText(node.source, '"@mui/material"');
+              },
+            });
           }
         },
       };
@@ -67,7 +55,7 @@ const muiV7Rules = {
       type: 'problem',
       docs: {
         description: 'Grid2 foi renomeado para Grid no MUI V7',
-        category: 'Best Practices',
+        category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
@@ -75,10 +63,10 @@ const muiV7Rules = {
           '🔧 Forma antiga (V6):\n' +
           '   import Grid2 from "@mui/material/Grid2"\n' +
           '   import { grid2Classes } from "@mui/material/Grid2"\n\n' +
-          '✅ Forma nova (V7):\n' +
-          '   import Grid from "@mui/material/Grid"\n' +
-          '   import { gridClasses } from "@mui/material/Grid"\n\n' +
-          '💡 Dica: O novo Grid é mais poderoso e responsivo!',
+          '✅ Recomendado:\n' +
+          '   import { Grid } from "@mui/material"\n' +
+          '   import { gridClasses } from "@mui/material"\n\n' +
+          '💡 O novo Grid é mais poderoso e usa a prop `size`!',
       },
       schema: [],
       fixable: 'code',
@@ -93,72 +81,9 @@ const muiV7Rules = {
               node,
               messageId: 'grid2Import',
               fix(fixer) {
-                const fixes = [
-                  fixer.replaceText(node.source, '"@mui/material/Grid"')
-                ];
-
-                // Renomeia Grid2 -> Grid e grid2Classes -> gridClasses
-                node.specifiers.forEach(spec => {
-                  if (spec.imported) {
-                    const name = spec.imported.name;
-                    if (name.includes('grid2')) {
-                      const newName = name.replace('grid2', 'grid');
-                      // Nota: Isso só funciona bem para casos simples
-                      // Para casos complexos, o usuário precisa fazer manual
-                    }
-                  }
-                });
-
-                return fixes;
+                return fixer.replaceText(node.source, '"@mui/material"');
               },
             });
-          }
-        },
-      };
-    },
-  },
-
-  'no-old-grid-import': {
-    meta: {
-      type: 'suggestion',
-      docs: {
-        description: 'Sugere migração do Grid antigo para o novo',
-        category: 'Best Practices',
-        recommended: false,
-      },
-      messages: {
-        oldGrid: '💡 O Grid antigo agora é GridLegacy. Considere migrar para o novo Grid!\n\n' +
-          '🔧 Se quiser manter o Grid antigo:\n' +
-          '   import Grid from "@mui/material/GridLegacy"\n' +
-          '   import { gridLegacyClasses } from "@mui/material/GridLegacy"\n\n' +
-          '✅ Recomendado: Migrar para o novo Grid:\n' +
-          '   import Grid from "@mui/material/Grid"\n\n' +
-          '📚 O novo Grid usa `size` em vez de `xs/sm/md`:\n' +
-          '   <Grid size={{ xs: 12, md: 6 }}>Conteúdo</Grid>',
-      },
-      schema: [],
-    },
-    create(context) {
-      const sourceCode = context.getSourceCode();
-
-      return {
-        ImportDeclaration(node) {
-          const source = node.source.value;
-
-          // Detecta import Grid from '@mui/material/Grid'
-          if (source === '@mui/material/Grid') {
-            const defaultImport = node.specifiers.find(
-              spec => spec.type === 'ImportDefaultSpecifier'
-            );
-
-            if (defaultImport) {
-              // Verifica se está usando props antigas (xs, sm, md) no código
-              // Isso é apenas um aviso suave, não um erro
-              context.report({
-                node,
-                messageId: 'oldGrid',
-              });
-            }
           }
         },
       };
@@ -170,15 +95,15 @@ const muiV7Rules = {
       type: 'problem',
       docs: {
         description: 'Componentes movidos de @mui/lab para @mui/material',
-        category: 'Best Practices',
+        category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
         labImport: '✨ Este componente foi movido para @mui/material no V7!\n\n' +
           '🔧 Forma antiga (V6):\n' +
-          '   import {{ component }} from "@mui/lab/{{ component }}"\n\n' +
-          '✅ Forma nova (V7):\n' +
-          '   import {{ component }} from "@mui/material/{{ component }}"\n\n' +
+          '   import {{ component }} from "@mui/lab"\n\n' +
+          '✅ Recomendado:\n' +
+          '   import { {{ component }} } from "@mui/material"\n\n' +
           '📦 Componentes movidos: Alert, Autocomplete, Pagination, Rating,\n' +
           '   Skeleton, SpeedDial, ToggleButton, AvatarGroup, e mais!',
       },
@@ -216,10 +141,7 @@ const muiV7Rules = {
                   messageId: 'labImport',
                   data: { component: componentName },
                   fix(fixer) {
-                    return fixer.replaceText(
-                      node.source,
-                      `"@mui/material/${componentName}"`
-                    );
+                    return fixer.replaceText(node.source, '"@mui/material"');
                   },
                 });
               }
@@ -235,7 +157,7 @@ const muiV7Rules = {
       type: 'problem',
       docs: {
         description: 'Grid não usa mais a prop `item`, agora usa `size`',
-        category: 'Best Practices',
+        category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
@@ -245,7 +167,7 @@ const muiV7Rules = {
           '✅ Forma nova (V7):\n' +
           '   <Grid size={{ xs: 12, sm: 6, md: 4 }}>\n\n' +
           '💡 A nova sintaxe é mais limpa e poderosa!\n' +
-          '   Você pode usar offset, push, pull e mais.',
+          '   Você pode usar: size, offset, spacing responsivo e mais.',
       },
       schema: [],
     },
@@ -279,7 +201,7 @@ const muiV7Rules = {
       type: 'problem',
       docs: {
         description: 'Detecta props depreciadas no MUI V7',
-        category: 'Best Practices',
+        category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
@@ -412,24 +334,26 @@ const plugin = {
     recommended: {
       plugins: ['mui-v7'],
       rules: {
-        'mui-v7/no-deep-imports': 'error',
+        // Breaking changes - ERRORS (código quebra)
+        'mui-v7/no-unstable-grid': 'error',
         'mui-v7/no-grid2-import': 'error',
-        'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-grid-item-prop': 'error',
+        'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
-        'mui-v7/no-old-grid-import': 'warn',
+        // Best practices - WARNINGS (sugestões)
         'mui-v7/prefer-theme-vars': 'warn',
       },
     },
     strict: {
       plugins: ['mui-v7'],
       rules: {
-        'mui-v7/no-deep-imports': 'error',
+        // Breaking changes - ERRORS
+        'mui-v7/no-unstable-grid': 'error',
         'mui-v7/no-grid2-import': 'error',
-        'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-grid-item-prop': 'error',
+        'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
-        'mui-v7/no-old-grid-import': 'error',
+        // Best practices - ERRORS também no strict
         'mui-v7/prefer-theme-vars': 'error',
       },
     },

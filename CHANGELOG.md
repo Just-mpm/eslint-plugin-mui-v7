@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-27
+
+### Added
+- ✨ New rule `no-unstable-grid`: Detects Unstable_Grid2 usage (promoted to stable Grid in V7)
+
+### Changed
+- 🎯 **BREAKING PHILOSOPHY**: Plugin now focuses exclusively on breaking changes (code that actually breaks in V7)
+- 📝 All import examples now show recommended style: `import { Grid } from '@mui/material'`
+- 📦 Updated plugin description: "focused on Material-UI V6 to V7 breaking changes"
+- 🏷️ Changed rule categories from "Best Practices" to "Breaking Changes" for core rules
+- 📋 Reorganized configs with clear comments (breaking changes vs best practices)
+- 📚 Complete README rewrite focusing on breaking changes philosophy
+
+### Removed
+- ❌ Rule `no-deep-imports`: Not a breaking change in V7 (deep imports still work)
+- ❌ Rule `no-old-grid-import`: Confusing and not a breaking change
+
+### Why This Release?
+This release refocuses the plugin on what matters most: **code that will actually break** when upgrading to MUI V7. We removed rules that warned about best practices but didn't cause runtime errors. The plugin is now more useful and less annoying!
+
+---
+
 ## [1.0.0] - 2025-01-26
 
 ### Added
