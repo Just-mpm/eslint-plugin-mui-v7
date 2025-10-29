@@ -4,9 +4,9 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @created 2025-01-26
- * @updated 2025-01-27
+ * @updated 2025-01-29
  * @author Matheus (Koda AI Studio) + Claude Code
  */
 
@@ -301,6 +301,55 @@ const muiV7Rules = {
     create(context) {
       const sourceCode = context.getSourceCode();
 
+      /**
+       * Verifica se o node está dentro de um ternário que checa theme.vars
+       * Exemplo: theme.vars ? `${theme.vars.palette.primary.main}` : `${theme.palette.primary.main}`
+       */
+      function isInsideThemeVarsConditional(node) {
+        let current = node;
+
+        // Sobe até 10 níveis na árvore AST procurando por ConditionalExpression
+        for (let i = 0; i < 10; i++) {
+          if (!current.parent) break;
+          current = current.parent;
+
+          // Se encontrar um ternário (ConditionalExpression)
+          if (current.type === 'ConditionalExpression') {
+            // Verifica se o teste é "theme.vars"
+            const test = current.test;
+            if (
+              test &&
+              test.type === 'MemberExpression' &&
+              test.object &&
+              test.object.name === 'theme' &&
+              test.property &&
+              test.property.name === 'vars'
+            ) {
+              // Se estamos no consequent (parte do `?`), não reportar
+              // Apenas reportar se estamos no alternate (parte do `:`)
+              return true; // Ignora warnings quando dentro de ternário com theme.vars
+            }
+          }
+        }
+
+        return false;
+      }
+
+      /**
+       * Verifica se está dentro de uma função sx que usa theme.vars!
+       * Exemplo: sx={(theme) => ({ background: `${theme.vars!.palette...}` })}
+       */
+      function isUsingNonNullAssertion(node) {
+        const sourceText = sourceCode.getText(node.parent);
+
+        // Procura por theme.vars! (non-null assertion)
+        if (sourceText.includes('theme.vars!')) {
+          return true;
+        }
+
+        return false;
+      }
+
       return {
         MemberExpression(node) {
           // Detecta theme.palette.* (sem .vars)
@@ -315,6 +364,16 @@ const muiV7Rules = {
             // Verifica se não é theme.vars.palette
             const parent = node.object.object;
             if (parent.type === 'Identifier' && parent.name === 'theme') {
+              // Ignora se estiver dentro de um ternário que checa theme.vars
+              if (isInsideThemeVarsConditional(node)) {
+                return;
+              }
+
+              // Ignora se já está usando theme.vars! (non-null assertion)
+              if (isUsingNonNullAssertion(node)) {
+                return;
+              }
+
               context.report({
                 node,
                 messageId: 'useThemeVars',
