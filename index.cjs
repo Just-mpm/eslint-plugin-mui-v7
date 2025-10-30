@@ -6,7 +6,7 @@
  *
  * @version 1.2.0
  * @created 2025-01-26
- * @updated 2025-01-29
+ * @updated 2025-10-30
  * @author Matheus (Koda AI Studio) + Claude Code
  */
 
@@ -115,12 +115,12 @@ const muiV7Rules = {
         recommended: true,
       },
       messages: {
-        labImport: '✨ Este componente foi movido para @mui/material no V7!\n\n' +
+        labImport: '✨ {{ count }} componente(s) movido(s) para @mui/material no V7!\n\n' +
           '🔧 Forma antiga (V6):\n' +
-          '   import {{ component }} from "@mui/lab"\n\n' +
+          '   import { {{ components }} } from "@mui/lab"\n\n' +
           '✅ Recomendado:\n' +
-          '   import { {{ component }} } from "@mui/material"\n\n' +
-          '📦 Componentes movidos: Alert, Autocomplete, Pagination, Rating,\n' +
+          '   import { {{ components }} } from "@mui/material"\n\n' +
+          '📦 Todos os componentes movidos: Alert, Autocomplete, Pagination, Rating,\n' +
           '   Skeleton, SpeedDial, ToggleButton, AvatarGroup, e mais!',
       },
       schema: [],
@@ -133,16 +133,19 @@ const muiV7Rules = {
 
           // Detecta imports de @mui/lab
           if (source.startsWith('@mui/lab')) {
-            // Check if any specifier is a moved component (O(n) instead of O(n*m))
-            const movedComponent = node.specifiers.find(spec => 
-              MOVED_COMPONENTS.has(spec.local.name)
-            );
+            // Collect ALL moved components (O(n) with Set.has O(1) lookup)
+            const movedComponentsList = node.specifiers
+              .filter(spec => MOVED_COMPONENTS.has(spec.local.name))
+              .map(spec => spec.local.name);
 
-            if (movedComponent) {
+            if (movedComponentsList.length > 0) {
               context.report({
                 node,
                 messageId: 'labImport',
-                data: { component: movedComponent.local.name },
+                data: {
+                  components: movedComponentsList.join(', '),
+                  count: movedComponentsList.length,
+                },
                 fix(fixer) {
                   return fixer.replaceText(node.source, '"@mui/material"');
                 },
