@@ -10,6 +10,22 @@
  * @author Matheus (Koda AI Studio) + Claude Code
  */
 
+// Define moved components at module scope to avoid recreation on every rule invocation
+const MOVED_COMPONENTS = new Set([
+  'Alert', 'AlertTitle',
+  'Autocomplete',
+  'AvatarGroup',
+  'Pagination', 'PaginationItem',
+  'Rating',
+  'Skeleton',
+  'SpeedDial', 'SpeedDialAction', 'SpeedDialIcon',
+  'TabContext', 'TabList', 'TabPanel',
+  'Timeline', 'TimelineConnector', 'TimelineContent', 'TimelineDot',
+  'TimelineItem', 'TimelineOppositeContent', 'TimelineSeparator',
+  'ToggleButton', 'ToggleButtonGroup',
+  'TreeView', 'TreeItem',
+]);
+
 const muiV7Rules = {
   'no-unstable-grid': {
     meta: {
@@ -111,41 +127,27 @@ const muiV7Rules = {
       fixable: 'code',
     },
     create(context) {
-      const movedComponents = [
-        'Alert', 'AlertTitle',
-        'Autocomplete',
-        'AvatarGroup',
-        'Pagination', 'PaginationItem',
-        'Rating',
-        'Skeleton',
-        'SpeedDial', 'SpeedDialAction', 'SpeedDialIcon',
-        'TabContext', 'TabList', 'TabPanel',
-        'Timeline', 'TimelineConnector', 'TimelineContent', 'TimelineDot',
-        'TimelineItem', 'TimelineOppositeContent', 'TimelineSeparator',
-        'ToggleButton', 'ToggleButtonGroup',
-        'TreeView', 'TreeItem',
-      ];
-
       return {
         ImportDeclaration(node) {
           const source = node.source.value;
 
           // Detecta imports de @mui/lab
           if (source.startsWith('@mui/lab')) {
-            node.specifiers.forEach(spec => {
-              const componentName = spec.local.name;
+            // Check if any specifier is a moved component (O(n) instead of O(n*m))
+            const movedComponent = node.specifiers.find(spec => 
+              MOVED_COMPONENTS.has(spec.local.name)
+            );
 
-              if (movedComponents.includes(componentName)) {
-                context.report({
-                  node,
-                  messageId: 'labImport',
-                  data: { component: componentName },
-                  fix(fixer) {
-                    return fixer.replaceText(node.source, '"@mui/material"');
-                  },
-                });
-              }
-            });
+            if (movedComponent) {
+              context.report({
+                node,
+                messageId: 'labImport',
+                data: { component: movedComponent.local.name },
+                fix(fixer) {
+                  return fixer.replaceText(node.source, '"@mui/material"');
+                },
+              });
+            }
           }
         },
       };
@@ -307,26 +309,23 @@ const muiV7Rules = {
        */
       function isInsideThemeVarsConditional(node) {
         let current = node;
+        let depth = 0;
+        const MAX_DEPTH = 10;
 
-        // Sobe até 10 níveis na árvore AST procurando por ConditionalExpression
-        for (let i = 0; i < 10; i++) {
-          if (!current.parent) break;
+        // Sobe até MAX_DEPTH níveis na árvore AST procurando por ConditionalExpression
+        while (current.parent && depth < MAX_DEPTH) {
           current = current.parent;
+          depth++;
 
           // Se encontrar um ternário (ConditionalExpression)
           if (current.type === 'ConditionalExpression') {
-            // Verifica se o teste é "theme.vars"
             const test = current.test;
+            // Verifica se o teste é "theme.vars"
             if (
-              test &&
-              test.type === 'MemberExpression' &&
-              test.object &&
-              test.object.name === 'theme' &&
-              test.property &&
-              test.property.name === 'vars'
+              test?.type === 'MemberExpression' &&
+              test.object?.name === 'theme' &&
+              test.property?.name === 'vars'
             ) {
-              // Se estamos no consequent (parte do `?`), não reportar
-              // Apenas reportar se estamos no alternate (parte do `:`)
               return true; // Ignora warnings quando dentro de ternário com theme.vars
             }
           }
@@ -336,50 +335,49 @@ const muiV7Rules = {
       }
 
       /**
+       * Cache for source text to avoid multiple getText calls for the same node
+       */
+      const sourceTextCache = new WeakMap();
+
+      /**
        * Verifica se está dentro de uma função sx que usa theme.vars!
        * Exemplo: sx={(theme) => ({ background: `${theme.vars!.palette...}` })}
        */
       function isUsingNonNullAssertion(node) {
-        const sourceText = sourceCode.getText(node.parent);
+        if (!node.parent) return false;
 
-        // Procura por theme.vars! (non-null assertion)
-        if (sourceText.includes('theme.vars!')) {
-          return true;
+        let sourceText = sourceTextCache.get(node.parent);
+        if (sourceText === undefined) {
+          sourceText = sourceCode.getText(node.parent);
+          sourceTextCache.set(node.parent, sourceText);
         }
 
-        return false;
+        // Procura por theme.vars! (non-null assertion)
+        return sourceText.includes('theme.vars!');
       }
 
       return {
         MemberExpression(node) {
           // Detecta theme.palette.* (sem .vars)
-          if (
-            node.object &&
-            node.object.type === 'MemberExpression' &&
-            node.object.object &&
-            node.object.object.name === 'theme' &&
-            node.object.property &&
-            node.object.property.name === 'palette'
-          ) {
-            // Verifica se não é theme.vars.palette
-            const parent = node.object.object;
-            if (parent.type === 'Identifier' && parent.name === 'theme') {
-              // Ignora se estiver dentro de um ternário que checa theme.vars
-              if (isInsideThemeVarsConditional(node)) {
-                return;
-              }
+          // Optimized: use optional chaining and early returns
+          if (node.object?.type !== 'MemberExpression') return;
+          if (node.object.object?.name !== 'theme') return;
+          if (node.object.property?.name !== 'palette') return;
 
-              // Ignora se já está usando theme.vars! (non-null assertion)
-              if (isUsingNonNullAssertion(node)) {
-                return;
-              }
+          // Verifica se não é theme.vars.palette
+          const parent = node.object.object;
+          if (parent.type !== 'Identifier' || parent.name !== 'theme') return;
 
-              context.report({
-                node,
-                messageId: 'useThemeVars',
-              });
-            }
-          }
+          // Ignora se estiver dentro de um ternário que checa theme.vars
+          if (isInsideThemeVarsConditional(node)) return;
+
+          // Ignora se já está usando theme.vars! (non-null assertion)
+          if (isUsingNonNullAssertion(node)) return;
+
+          context.report({
+            node,
+            messageId: 'useThemeVars',
+          });
         },
       };
     },
