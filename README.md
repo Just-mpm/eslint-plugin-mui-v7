@@ -240,17 +240,36 @@ export default [
 ]
 ```
 
-## 🆕 What's New in v1.1.0
+## 🆕 What's New
 
-### Added
+### v1.2.0 (2025-10-30)
+
+#### Performance
+- ⚡ Optimized `no-lab-imports`: O(n×m) → O(n) using Set lookup instead of Array.includes
+- ⚡ Optimized `prefer-theme-vars`: Added WeakMap cache for getText() calls to eliminate duplicate I/O
+- 🧹 Improved code readability with optional chaining and early returns
+- 📊 Moved `MOVED_COMPONENTS` to module scope to avoid recreation on every rule invocation
+
+#### UX Improvements
+- ✨ Enhanced `no-lab-imports` to show **all moved components** in error messages
+- 📝 Before: `Este componente foi movido` (showed only first component)
+- 🎯 Now: `3 componente(s) movido(s)` with complete list: `Alert, Autocomplete, Rating`
+
+#### Internal
+- 🏗️ Formalized AST traversal depth tracking with MAX_DEPTH constant
+- 💾 Source text caching to prevent redundant file reads
+
+### v1.1.0 (2025-01-27)
+
+#### Added
 - ✨ New rule `no-unstable-grid` - Detects Unstable_Grid2 usage
 
-### Changed
+#### Changed
 - 📝 All import examples now show recommended style: `import { Grid } from '@mui/material'`
 - 🎯 Refocused on breaking changes only (removed non-breaking rules)
 - 📦 Updated plugin description and categories
 
-### Removed
+#### Removed
 - ❌ `no-deep-imports` - Not a breaking change in V7
 - ❌ `no-old-grid-import` - Confusing and not a breaking change
 
