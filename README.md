@@ -242,6 +242,13 @@ export default [
 
 ## 🆕 What's New
 
+### v1.2.1 (2025-10-30)
+
+#### UX Improvements
+- ✨ Enhanced `no-lab-imports` to show **all moved components** in error messages
+- 📝 Before: `Este componente foi movido` (showed only first component)
+- 🎯 Now: `3 componente(s) movido(s)` with complete list: `Alert, Autocomplete, Rating`
+
 ### v1.2.0 (2025-10-30)
 
 #### Performance
@@ -249,11 +256,6 @@ export default [
 - ⚡ Optimized `prefer-theme-vars`: Added WeakMap cache for getText() calls to eliminate duplicate I/O
 - 🧹 Improved code readability with optional chaining and early returns
 - 📊 Moved `MOVED_COMPONENTS` to module scope to avoid recreation on every rule invocation
-
-#### UX Improvements
-- ✨ Enhanced `no-lab-imports` to show **all moved components** in error messages
-- 📝 Before: `Este componente foi movido` (showed only first component)
-- 🎯 Now: `3 componente(s) movido(s)` with complete list: `Alert, Autocomplete, Rating`
 
 #### Internal
 - 🏗️ Formalized AST traversal depth tracking with MAX_DEPTH constant

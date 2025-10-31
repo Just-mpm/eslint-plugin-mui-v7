@@ -4,7 +4,7 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.2.0
+ * @version 1.2.1
  * @created 2025-01-26
  * @updated 2025-10-30
  * @author Matheus (Koda AI Studio) + Claude Code
