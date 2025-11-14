@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2025-11-14 - Bugfix: Fixed prefer-slots-api False Positives 🐛
+
+### Fixed
+- 🐛 **Fixed `prefer-slots-api` false positives** - Rule now only checks MUI components
+  - Previously flagged **any** component with `components` or `componentsProps` props
+  - Now only checks components from a curated list of 50+ known MUI components
+  - Fixes false positive for libraries like `react-markdown` that use `components` prop
+
+### Changed
+- ✅ Added whitelist of MUI components that actually use `components`/`componentsProps` API
+  - Material-UI Core: TextField, Dialog, Tooltip, Autocomplete, Select, and 35+ more
+  - MUI X: DataGrid, DatePicker, TimePicker, and all picker variants
+- ✅ Added validation to only check PascalCase component names (React convention)
+- ✅ Added tests for non-MUI components (ReactMarkdown, CustomComponent, etc.)
+
+### Why This Release?
+The `prefer-slots-api` rule was too aggressive and flagged **any** React component with `components` or `componentsProps` props, causing false positives for third-party libraries like `react-markdown`, `@tanstack/react-table`, and custom components.
+
+**Example of Fixed False Positive:**
+```tsx
+// ❌ Was incorrectly flagged (v1.6.1)
+<ReactMarkdown components={customRenderers}>
+  {content}
+</ReactMarkdown>
+
+// ✅ No longer flagged (v1.6.2) - Not a MUI component!
+```
+
+**Still Correctly Detects MUI Usage:**
+```tsx
+// ✅ Correctly flagged - TextField is MUI
+<TextField components={obj} />
+
+// ✅ Should use:
+<TextField slots={obj} />
+```
+
+**Technical Details:**
+The rule now maintains a Set of 50+ known MUI components from:
+- `@mui/material` (Autocomplete, Dialog, TextField, Select, etc.)
+- `@mui/x-date-pickers` (DatePicker, TimePicker, etc.)
+- `@mui/x-data-grid` (DataGrid, DataGridPro, etc.)
+
+Source: [MUI GitHub Issue #41279](https://github.com/mui/material-ui/issues/41279)
+
+---
+
 ## [1.6.1] - 2025-11-14 - Bugfix: Removed False Positive Rule 🐛
 
 ### Removed

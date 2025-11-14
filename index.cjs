@@ -4,7 +4,7 @@
  * Automatically detects code that BREAKS when migrating from V6 → V7
  * and provides educational messages to fix it.
  *
- * @version 1.6.1
+ * @version 1.6.2
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -556,8 +556,45 @@ const muiV7Rules = {
       fixable: 'code',
     },
     create(context) {
+      // List of MUI components that actually use components/componentsProps
+      // Source: https://github.com/mui/material-ui/issues/41279
+      const MUI_COMPONENTS_WITH_SLOTS = new Set([
+        // Material-UI Core components
+        'Accordion', 'Alert', 'Autocomplete', 'Avatar', 'AvatarGroup',
+        'CardHeader', 'Checkbox', 'Dialog', 'Drawer', 'SwipeableDrawer',
+        'FilledInput', 'FormControlLabel', 'Input', 'InputBase', 'OutlinedInput',
+        'ListItem', 'Menu', 'MenuItem', 'MobileStepper', 'Modal',
+        'NativeSelect', 'Pagination', 'PaginationItem', 'Popper',
+        'Radio', 'Rating', 'Select', 'Skeleton', 'Slider',
+        'Snackbar', 'SpeedDial', 'SpeedDialAction',
+        'Tab', 'Tabs', 'TablePagination', 'TableSortLabel',
+        'TextField', 'ToggleButton', 'ToggleButtonGroup', 'Tooltip',
+        // MUI X components (DataGrid, Pickers, etc)
+        'DataGrid', 'DataGridPro', 'DataGridPremium',
+        'DatePicker', 'TimePicker', 'DateTimePicker',
+        'MobileDatePicker', 'MobileTimePicker', 'MobileDateTimePicker',
+        'DesktopDatePicker', 'DesktopTimePicker', 'DesktopDateTimePicker',
+        'StaticDatePicker', 'StaticTimePicker', 'StaticDateTimePicker',
+        'DateCalendar', 'MonthCalendar', 'YearCalendar',
+        'DateField', 'TimeField', 'DateTimeField',
+        'DateRangePicker', 'MobileDateRangePicker', 'DesktopDateRangePicker',
+        'TreeView', 'TreeItem',
+      ]);
+
       return {
         JSXOpeningElement(node) {
+          const componentName = node.name?.name;
+
+          // Only check if it's a potential MUI component (PascalCase)
+          if (!componentName || !/^[A-Z]/.test(componentName)) {
+            return;
+          }
+
+          // Only check components that we know use components/componentsProps
+          if (!MUI_COMPONENTS_WITH_SLOTS.has(componentName)) {
+            return;
+          }
+
           const deprecatedProps = node.attributes.filter(
             attr => attr.type === 'JSXAttribute' &&
               (attr.name?.name === 'components' || attr.name?.name === 'componentsProps')

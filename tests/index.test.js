@@ -208,6 +208,11 @@ ruleTester.run('prefer-slots-api', plugin.rules['prefer-slots-api'], {
     { code: '<TextField label="Test" />' },
     { code: '<TextField slots={obj} />' },
     { code: '<TextField slotProps={obj} />' },
+    // Should NOT warn for non-MUI components (false positive fix)
+    { code: '<ReactMarkdown components={obj} />' },
+    { code: '<CustomComponent components={obj} />' },
+    { code: '<MyComponent componentsProps={props} />' },
+    { code: '<SomeLibraryComponent components={customComponents} />' },
   ],
   invalid: [
     {
