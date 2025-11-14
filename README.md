@@ -30,6 +30,142 @@ This plugin focuses on **breaking changes only** - code that will actually break
 npm install --save-dev eslint-plugin-mui-v7
 ```
 
+## 📚 Complete Setup Tutorial
+
+### Step 1: Install the Plugin
+
+Choose your package manager:
+
+```bash
+# npm
+npm install --save-dev eslint-plugin-mui-v7
+
+# yarn
+yarn add -D eslint-plugin-mui-v7
+
+# pnpm
+pnpm add -D eslint-plugin-mui-v7
+```
+
+### Step 2: Configure ESLint
+
+#### For ESLint 9+ (Flat Config) - Recommended ✨
+
+Create or update your `eslint.config.js` file:
+
+```javascript
+// eslint.config.js
+import muiV7Plugin from 'eslint-plugin-mui-v7'
+
+export default [
+  // Use the recommended preset (easiest option!)
+  muiV7Plugin.configs.recommended,
+
+  // Your other ESLint configs...
+]
+```
+
+**That's it!** The plugin is now configured with all breaking changes as errors and best practices as warnings.
+
+#### For ESLint <9 (Legacy .eslintrc)
+
+Create or update your `.eslintrc.js` file:
+
+```javascript
+// .eslintrc.js
+module.exports = {
+  plugins: ['mui-v7'],
+  rules: {
+    // Breaking changes - ERRORS
+    'mui-v7/no-unstable-grid': 'error',
+    'mui-v7/no-grid2-import': 'error',
+    'mui-v7/no-grid-item-prop': 'error',
+    'mui-v7/no-lab-imports': 'error',
+    'mui-v7/no-deprecated-props': 'error',
+    'mui-v7/no-deprecated-imports': 'error',
+    'mui-v7/no-deep-imports': 'error',
+    'mui-v7/no-grid-legacy': 'error',
+
+    // Best practices - WARNINGS
+    'mui-v7/prefer-slots-api': 'warn',
+    'mui-v7/prefer-theme-vars': 'warn',
+  },
+}
+```
+
+### Step 3: Run ESLint on Your Code
+
+Check your code for MUI V7 breaking changes:
+
+```bash
+# Check all files
+npx eslint .
+
+# Check specific directory
+npx eslint src/
+
+# Check and auto-fix issues
+npx eslint . --fix
+```
+
+### Step 4: Review and Fix Issues
+
+The plugin will show you:
+- ❌ **Errors** - Code that WILL BREAK in MUI V7
+- ⚠️ **Warnings** - Best practices and deprecated patterns
+
+Most issues can be auto-fixed with `--fix`! 🎯
+
+### Step 5: Fix Remaining Issues Manually
+
+For issues that can't be auto-fixed (like spread props), the plugin provides helpful messages:
+
+```
+❌ mui-v7/no-grid-item-prop
+
+🎯 Grid no MUI V7 não usa mais a prop `item`!
+
+🔧 Forma antiga (V6):
+   <Grid item xs={12} sm={6}>
+
+✅ Forma nova (V7):
+   <Grid size={{ xs: 12, sm: 6 }}>
+
+💡 A nova sintaxe é mais limpa e poderosa!
+```
+
+### Complete Example
+
+Here's a complete `eslint.config.js` for a React + TypeScript + MUI project:
+
+```javascript
+// eslint.config.js
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import reactPlugin from 'eslint-plugin-react'
+import muiV7Plugin from 'eslint-plugin-mui-v7'
+
+export default [
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  reactPlugin.configs.flat.recommended,
+
+  // Add MUI V7 plugin
+  muiV7Plugin.configs.recommended,
+
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+  },
+]
+```
+
 ## 🚀 Quick Start
 
 ### ESLint 9+ (Flat Config) - Recommended
