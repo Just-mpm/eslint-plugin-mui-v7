@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2025-11-14 - Bugfix: Removed False Positive Rule 🐛
+
+### Removed
+- 🗑️ **Removed `no-grid-legacy` rule** - This rule was causing false positives
+  - The rule incorrectly flagged `import Grid from "@mui/material/Grid"` as deprecated
+  - In reality, this import pattern is **valid** and imports the **new Grid** (not legacy)
+  - The rule was based on an incorrect assumption about MUI V7's Grid implementation
+
+### Fixed
+- ✅ Fixed false positive that incorrectly warned when using valid Grid imports
+- ✅ Updated all configuration examples in README to remove the deprecated rule
+- ✅ Removed tests for the `no-grid-legacy` rule
+
+### Why This Release?
+The `no-grid-legacy` rule was implemented based on a misunderstanding of how Grid imports work in MUI V7. The rule assumed that importing directly from `@mui/material/Grid` would give you the legacy Grid, but this is incorrect. Both `import Grid from "@mui/material/Grid"` and `import { Grid } from "@mui/material"` import the **new Grid** component.
+
+**What's Valid in MUI V7:**
+- ✅ `import Grid from "@mui/material/Grid"` - Imports new Grid (valid!)
+- ✅ `import { Grid } from "@mui/material"` - Imports new Grid (valid!)
+- ✅ `import { GridLegacy } from "@mui/material"` - Imports old Grid (also valid!)
+
+The plugin still correctly detects actual Grid-related issues with:
+- `no-unstable-grid` - Detects `Unstable_Grid2` usage
+- `no-grid2-import` - Detects `Grid2` imports (renamed to `Grid`)
+- `no-grid-item-prop` - Detects old `item` prop usage (use `size` instead)
+
+---
+
 ## [1.6.0] - 2025-11-14 - Full English Translation! 🌍
 
 ### Changed

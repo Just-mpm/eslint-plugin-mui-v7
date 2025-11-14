@@ -4,7 +4,7 @@
  * Automatically detects code that BREAKS when migrating from V6 → V7
  * and provides educational messages to fix it.
  *
- * @version 1.6.0
+ * @version 1.6.1
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -769,63 +769,6 @@ const muiV7Rules = {
       };
     },
   },
-
-  'no-grid-legacy': {
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Old Grid was renamed to GridLegacy in MUI V7',
-        category: 'Breaking Changes',
-        recommended: true,
-      },
-      messages: {
-        gridLegacyImport: '⚠️ The old Grid was deprecated and renamed to GridLegacy!\n\n' +
-          '🔧 You are using:\n' +
-          '   import Grid from "@mui/material/Grid"\n\n' +
-          '✅ Option 1 - Continue using old Grid (temporary):\n' +
-          '   import { GridLegacy as Grid } from "@mui/material"\n\n' +
-          '✅ Option 2 - Migrate to new Grid (recommended):\n' +
-          '   import { Grid } from "@mui/material"\n' +
-          '   // Use size={{ "{"}xs: 12{"}"} }} instead of item xs={12}\n\n' +
-          '💡 The new Grid is more powerful and uses the `size` prop!\n' +
-          '   See: https://mui.com/material-ui/migration/upgrade-to-grid-v2/',
-      },
-      schema: [],
-      fixable: 'code',
-    },
-    create(context) {
-      return {
-        ImportDeclaration(node) {
-          const source = node.source.value;
-
-          // Detect direct import of old Grid: import Grid from '@mui/material/Grid'
-          if (source === '@mui/material/Grid') {
-            context.report({
-              node,
-              messageId: 'gridLegacyImport',
-              fix(fixer) {
-                // Suggested fix: change to GridLegacy
-                const fixes = [fixer.replaceText(node.source, '"@mui/material"')];
-
-                // Rename default import to GridLegacy as Grid
-                if (node.specifiers.length > 0 && node.specifiers[0].type === 'ImportDefaultSpecifier') {
-                  const localName = node.specifiers[0].local.name;
-                  if (localName === 'Grid') {
-                    fixes.push(fixer.replaceText(node.specifiers[0], '{ GridLegacy as Grid }'));
-                  } else {
-                    // Keep custom alias
-                    fixes.push(fixer.replaceText(node.specifiers[0], `{ GridLegacy as ${localName} }`));
-                  }
-                }
-
-                return fixes;
-              },
-            });
-          }
-        },
-      };
-    },
-  },
 };
 
 // Export the plugin (ESM and CommonJS compatible)
@@ -847,7 +790,6 @@ const plugin = {
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
         'mui-v7/no-deep-imports': 'error',
-        'mui-v7/no-grid-legacy': 'error',
         // Best practices - WARNINGS (suggestions)
         'mui-v7/prefer-slots-api': 'warn',
         'mui-v7/prefer-theme-vars': 'warn',
@@ -864,7 +806,6 @@ const plugin = {
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
         'mui-v7/no-deep-imports': 'error',
-        'mui-v7/no-grid-legacy': 'error',
         // Best practices - ERRORS also in strict mode
         'mui-v7/prefer-slots-api': 'error',
         'mui-v7/prefer-theme-vars': 'error',

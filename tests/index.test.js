@@ -275,31 +275,6 @@ ruleTester.run('prefer-theme-vars', plugin.rules['prefer-theme-vars'], {
 });
 
 // =============================================================================
-// Test: no-grid-legacy
-// =============================================================================
-
-console.log('Testing no-grid-legacy...');
-ruleTester.run('no-grid-legacy', plugin.rules['no-grid-legacy'], {
-  valid: [
-    { code: 'import { Grid } from "@mui/material"' },
-    { code: 'import { GridLegacy } from "@mui/material"' },
-    { code: 'import { GridLegacy as Grid } from "@mui/material"' },
-  ],
-  invalid: [
-    {
-      code: 'import Grid from "@mui/material/Grid"',
-      errors: [{ messageId: 'gridLegacyImport' }],
-      output: 'import { GridLegacy as Grid } from "@mui/material"',
-    },
-    {
-      code: 'import MyGrid from "@mui/material/Grid"',
-      errors: [{ messageId: 'gridLegacyImport' }],
-      output: 'import { GridLegacy as MyGrid } from "@mui/material"',
-    },
-  ],
-});
-
-// =============================================================================
 // Test: no-deep-imports
 // =============================================================================
 
