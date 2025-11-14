@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-mui-v7",
-  "version": "1.2.1",
+  "version": "1.6.0",
   "description": "ESLint plugin focused on Material-UI V6 to V7 breaking changes with educational error messages",
   "keywords": [
     "eslint",
@@ -12,7 +12,9 @@
     "react",
     "typescript",
     "linter",
-    "code-quality"
+    "code-quality",
+    "migration",
+    "breaking-changes"
   ],
   "author": "Matheus Pimenta <studio.kodaai@gmail.com> (https://kodaai.app)",
   "homepage": "https://github.com/Just-mpm/eslint-plugin-mui-v7#readme",
@@ -39,9 +41,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0",
-    "lint": "echo \"Linting skipped for plugin package\"",
-    "prepublishOnly": "echo \"Ready to publish!\""
+    "test": "node tests/index.test.js",
+    "test:watch": "node --watch tests/index.test.js",
+    "prepublishOnly": "npm test"
   },
   "peerDependencies": {
     "eslint": ">=8.0.0"
