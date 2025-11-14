@@ -1,12 +1,12 @@
 /**
- * ESLint Plugin para MUI V7 - Foca em Breaking Changes (CommonJS version)
+ * ESLint Plugin para MUI V7 - Foca em Breaking Changes
  *
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.2.1
+ * @version 1.3.0
  * @created 2025-01-26
- * @updated 2025-10-30
+ * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
  */
 
@@ -97,7 +97,30 @@ const muiV7Rules = {
               node,
               messageId: 'grid2Import',
               fix(fixer) {
-                return fixer.replaceText(node.source, '"@mui/material"');
+                const fixes = [fixer.replaceText(node.source, '"@mui/material"')];
+
+                // Renomeia Grid2 → Grid e grid2Classes → gridClasses
+                node.specifiers.forEach(spec => {
+                  if (spec.type === 'ImportDefaultSpecifier') {
+                    // import Grid2 from '@mui/material/Grid2' → import { Grid } from '@mui/material'
+                    const localName = spec.local.name;
+                    if (localName === 'Grid2') {
+                      fixes.push(fixer.replaceText(spec, '{ Grid }'));
+                    } else {
+                      // Mantém o alias: import MyGrid from ... → import { Grid as MyGrid } from ...
+                      fixes.push(fixer.replaceText(spec, `{ Grid as ${localName} }`));
+                    }
+                  } else if (spec.type === 'ImportSpecifier') {
+                    const importedName = spec.imported.name;
+                    if (importedName === 'grid2Classes') {
+                      fixes.push(fixer.replaceText(spec.imported, 'gridClasses'));
+                    } else if (importedName === 'Grid2') {
+                      fixes.push(fixer.replaceText(spec.imported, 'Grid'));
+                    }
+                  }
+                });
+
+                return fixes;
               },
             });
           }
@@ -168,9 +191,9 @@ const muiV7Rules = {
       messages: {
         gridItemProp: '🎯 Grid no MUI V7 não usa mais a prop `item`!\n\n' +
           '🔧 Forma antiga (V6):\n' +
-          '   <Grid item xs={12} sm={6} md={4}>\n\n' +
+          '   <Grid item xs={12} sm={6}>\n\n' +
           '✅ Forma nova (V7):\n' +
-          '   <Grid size={{ xs: 12, sm: 6, md: 4 }}>\n\n' +
+          '   <Grid size={12}> ou <Grid size={{ "{"}xs: 12, sm: 6{"}"}  }}>\n\n' +
           '💡 A nova sintaxe é mais limpa e poderosa!\n' +
           '   Você pode usar: size, offset, spacing responsivo e mais.',
       },
@@ -179,14 +202,14 @@ const muiV7Rules = {
     create(context) {
       return {
         JSXOpeningElement(node) {
-          if (node.name.name === 'Grid') {
+          if (node.name?.name === 'Grid') {
             const hasItemProp = node.attributes.some(
-              attr => attr.type === 'JSXAttribute' && attr.name.name === 'item'
+              attr => attr.type === 'JSXAttribute' && attr.name?.name === 'item'
             );
 
             const hasBreakpointProps = node.attributes.some(
               attr => attr.type === 'JSXAttribute' &&
-                ['xs', 'sm', 'md', 'lg', 'xl'].includes(attr.name.name)
+                ['xs', 'sm', 'md', 'lg', 'xl'].includes(attr.name?.name)
             );
 
             if (hasItemProp || hasBreakpointProps) {
@@ -205,16 +228,16 @@ const muiV7Rules = {
     meta: {
       type: 'problem',
       docs: {
-        description: 'Detecta props depreciadas no MUI V7',
+        description: 'Detecta props e componentes depreciados no MUI V7',
         category: 'Breaking Changes',
         recommended: true,
       },
       messages: {
-        onBackdropClick: '🔄 Dialog.onBackdropClick foi removido no V7!\n\n' +
+        onBackdropClick: '🔄 {{ component }}.onBackdropClick foi removido no V7!\n\n' +
           '🔧 Forma antiga (V6):\n' +
-          '   <Dialog onBackdropClick={handleClick}>\n\n' +
+          '   <{{ component }} onBackdropClick={handleClick}>\n\n' +
           '✅ Forma nova (V7):\n' +
-          '   <Dialog onClose={(event, reason) => {\n' +
+          '   <{{ component }} onClose={(event, reason) => {\n' +
           '     if (reason === "backdropClick") {\n' +
           '       // Sua lógica aqui\n' +
           '     }\n' +
@@ -234,25 +257,37 @@ const muiV7Rules = {
           '✅ Opção 2 - Use useMediaQuery:\n' +
           '   const hidden = useMediaQuery(theme => theme.breakpoints.up("xl"))\n' +
           '   return hidden ? null : <Paper />',
+
+        pigmentHiddenComponent: '👻 PigmentHidden component foi removido no V7!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   <PigmentHidden xlUp><Paper /></PigmentHidden>\n\n' +
+          '✅ Opção 1 - Use sx prop:\n' +
+          '   <Paper sx={{ display: { xl: "none" } }} />\n\n' +
+          '✅ Opção 2 - Use useMediaQuery:\n' +
+          '   const hidden = useMediaQuery(theme => theme.breakpoints.up("xl"))\n' +
+          '   return hidden ? null : <Paper />',
       },
       schema: [],
+      fixable: 'code',
     },
     create(context) {
       return {
         JSXOpeningElement(node) {
-          const componentName = node.name.name;
+          const componentName = node.name?.name;
+          if (!componentName) return;
 
-          // Dialog.onBackdropClick
-          if (componentName === 'Dialog') {
+          // Dialog.onBackdropClick e Modal.onBackdropClick
+          if (componentName === 'Dialog' || componentName === 'Modal') {
             const hasOnBackdropClick = node.attributes.some(
               attr => attr.type === 'JSXAttribute' &&
-                attr.name.name === 'onBackdropClick'
+                attr.name?.name === 'onBackdropClick'
             );
 
             if (hasOnBackdropClick) {
               context.report({
                 node,
                 messageId: 'onBackdropClick',
+                data: { component: componentName },
               });
             }
           }
@@ -261,13 +296,16 @@ const muiV7Rules = {
           if (componentName === 'InputLabel') {
             node.attributes.forEach(attr => {
               if (attr.type === 'JSXAttribute' &&
-                  attr.name.name === 'size' &&
+                  attr.name?.name === 'size' &&
                   attr.value &&
                   attr.value.type === 'Literal' &&
                   attr.value.value === 'normal') {
                 context.report({
                   node: attr,
                   messageId: 'inputLabelNormal',
+                  fix(fixer) {
+                    return fixer.replaceText(attr.value, '"medium"');
+                  },
                 });
               }
             });
@@ -278,6 +316,117 @@ const muiV7Rules = {
             context.report({
               node,
               messageId: 'hiddenComponent',
+            });
+          }
+
+          // PigmentHidden component
+          if (componentName === 'PigmentHidden') {
+            context.report({
+              node,
+              messageId: 'pigmentHiddenComponent',
+            });
+          }
+        },
+      };
+    },
+  },
+
+  'no-deprecated-imports': {
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Detecta imports depreciados no MUI V7',
+        category: 'Breaking Changes',
+        recommended: true,
+      },
+      messages: {
+        createMuiTheme: '🎨 createMuiTheme foi removido no V7!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   import { createMuiTheme } from "@mui/material/styles"\n\n' +
+          '✅ Forma nova (V7):\n' +
+          '   import { createTheme } from "@mui/material/styles"\n\n' +
+          '💡 A funcionalidade é idêntica, apenas o nome mudou!',
+
+        experimentalStyled: '🎨 experimentalStyled foi removido no V7!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   import { experimentalStyled } from "@mui/material/styles"\n\n' +
+          '✅ Forma nova (V7):\n' +
+          '   import { styled } from "@mui/material/styles"\n\n' +
+          '💡 O styled agora é estável e totalmente suportado!',
+      },
+      schema: [],
+      fixable: 'code',
+    },
+    create(context) {
+      return {
+        ImportDeclaration(node) {
+          const source = node.source.value;
+
+          // Detecta imports de @mui/material/styles
+          if (source === '@mui/material/styles' || source === '@mui/material') {
+            node.specifiers.forEach(spec => {
+              if (spec.type === 'ImportSpecifier') {
+                const importedName = spec.imported.name;
+
+                // createMuiTheme → createTheme
+                if (importedName === 'createMuiTheme') {
+                  context.report({
+                    node: spec,
+                    messageId: 'createMuiTheme',
+                    fix(fixer) {
+                      return fixer.replaceText(spec.imported, 'createTheme');
+                    },
+                  });
+                }
+
+                // experimentalStyled → styled
+                if (importedName === 'experimentalStyled') {
+                  context.report({
+                    node: spec,
+                    messageId: 'experimentalStyled',
+                    fix(fixer) {
+                      return fixer.replaceText(spec.imported, 'styled');
+                    },
+                  });
+                }
+              }
+            });
+          }
+        },
+      };
+    },
+  },
+
+  'prefer-slots-api': {
+    meta: {
+      type: 'suggestion',
+      docs: {
+        description: 'Recomenda usar slots/slotProps ao invés de components/componentsProps',
+        category: 'Best Practices',
+        recommended: true,
+      },
+      messages: {
+        useSlots: '🔧 A API components/componentsProps foi depreciada!\n\n' +
+          '⚠️ Forma antiga (depreciada):\n' +
+          '   <TextField components={{"{"}...{"}"}  componentsProps={{"{"}...{"}"} } />\n\n' +
+          '✅ Forma nova (recomendada):\n' +
+          '   <TextField slots={{"{"}...{"}"}  slotProps={{"{"}...{"}"} } />\n\n' +
+          '💡 A nova API é mais consistente e flexível!',
+      },
+      schema: [],
+    },
+    create(context) {
+      return {
+        JSXOpeningElement(node) {
+          const hasComponentsProp = node.attributes.some(
+            attr => attr.type === 'JSXAttribute' &&
+              (attr.name?.name === 'components' || attr.name?.name === 'componentsProps')
+          );
+
+          if (hasComponentsProp) {
+            context.report({
+              node,
+              messageId: 'useSlots',
             });
           }
         },
@@ -387,7 +536,7 @@ const muiV7Rules = {
   },
 };
 
-// Exporta o plugin (CommonJS)
+// Exporta o plugin (ESM e CommonJS compatível)
 const plugin = {
   rules: muiV7Rules,
   configs: {
@@ -400,7 +549,9 @@ const plugin = {
         'mui-v7/no-grid-item-prop': 'error',
         'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
+        'mui-v7/no-deprecated-imports': 'error',
         // Best practices - WARNINGS (sugestões)
+        'mui-v7/prefer-slots-api': 'warn',
         'mui-v7/prefer-theme-vars': 'warn',
       },
     },
@@ -413,7 +564,9 @@ const plugin = {
         'mui-v7/no-grid-item-prop': 'error',
         'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
+        'mui-v7/no-deprecated-imports': 'error',
         // Best practices - ERRORS também no strict
+        'mui-v7/prefer-slots-api': 'error',
         'mui-v7/prefer-theme-vars': 'error',
       },
     },

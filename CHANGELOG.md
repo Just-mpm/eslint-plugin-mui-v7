@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-11-14 - Major Update! 🎉
+
+### Added
+- ✨ **New Rule: `no-deprecated-imports`**: Detects and auto-fixes deprecated imports
+  - `createMuiTheme` → `createTheme`
+  - `experimentalStyled` → `styled`
+- ✨ **New Rule: `prefer-slots-api`**: Recommends `slots`/`slotProps` over `components`/`componentsProps`
+- ✅ **Comprehensive test suite**: 50+ test cases covering all rules
+- 🧪 **Test scripts**: `npm test` and `npm run test:watch`
+
+### Changed
+- 🔧 **Enhanced `no-deprecated-props`**: Now detects `Modal.onBackdropClick` and `PigmentHidden` component
+- 🔧 **Auto-fix for `InputLabel size="normal"`**: Now automatically fixes to `size="medium"`
+- 🔧 **Smart auto-fix for `no-grid-item-prop`**: Converts `<Grid item xs={12} sm={6}>` → `<Grid size={{ xs: 12, sm: 6 }}>`
+- 🔧 **Improved `no-grid2-import` fix**: Properly renames `Grid2` → `Grid` and `grid2Classes` → `gridClasses`
+- 🔧 **Better `no-unstable-grid` handling**: Correctly converts default imports to named imports
+- 🛡️ **Added optional chaining (`?.`)**: Safer AST navigation prevents potential crashes
+- 📦 **Updated package.json**: Version bump to 1.3.0, added test scripts
+- 🔄 **prepublishOnly hook**: Tests run automatically before publishing
+
+### Fixed
+- 🐛 Fixed potential crashes when AST nodes are missing properties
+- 🐛 Improved autofix reliability for Grid-related rules
+
+### Why This Release?
+This is a **major feature release** that addresses all missing breaking changes from MUI V7 migration guide! We've added detection for deprecated imports (`createMuiTheme`, `experimentalStyled`), expanded component detection (`Modal.onBackdropClick`, `PigmentHidden`), and significantly improved auto-fix capabilities. Most importantly, we now have a **comprehensive test suite** ensuring plugin reliability!
+
+---
+
+## [1.2.1] - 2025-10-30
+
+### Changed
+- ✨ Enhanced `no-lab-imports` UX: Now shows **all moved components** in error messages
+- 📝 Before: `Este componente foi movido` (showed only first component)
+- 🎯 Now: `3 componente(s) movido(s)` with complete list: `Alert, Autocomplete, Rating`
+
+### Why This Release?
+Better user experience - developers can see all problematic imports at once instead of fixing them one by one!
+
+---
+
+## [1.2.0] - 2025-10-30
+
+### Changed
+- ⚡ **Performance optimization for `no-lab-imports`**: O(n×m) → O(n)
+  - Replaced `Array.includes()` with `Set.has()` for O(1) lookup
+- ⚡ **Performance optimization for `prefer-theme-vars`**: Added WeakMap cache
+  - Eliminates duplicate `getText()` calls for the same node
+- 🧹 Improved code readability with optional chaining and early returns
+- 📊 Moved `MOVED_COMPONENTS` to module scope to avoid recreation on every rule invocation
+- 🏗️ Formalized AST traversal depth tracking with `MAX_DEPTH` constant
+- 💾 Added source text caching to prevent redundant file reads
+
+### Why This Release?
+Performance improvements and code quality! The plugin now runs faster and is more maintainable.
+
+---
+
 ## [1.1.0] - 2025-01-27
 
 ### Added

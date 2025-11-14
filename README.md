@@ -14,7 +14,9 @@ This plugin focuses on **breaking changes only** - code that will actually break
 - ⚠️ **Catch Grid2 usage** - Grid2 was renamed to Grid in V7
 - 🎯 **Grid item prop detection** - Grid doesn't use `item` prop anymore, use `size` instead
 - ✨ **Find moved @mui/lab components** - Alert, Skeleton, Rating, etc. are now in @mui/material
-- 🔄 **Detect deprecated props** - onBackdropClick, size="normal", Hidden component
+- 🔄 **Detect deprecated props** - onBackdropClick, size="normal", Hidden/PigmentHidden components
+- 🎨 **Catch deprecated imports** - createMuiTheme, experimentalStyled
+- 🔧 **Components/componentsProps deprecation** - Suggests slots/slotProps API
 - 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
 - 🔧 **Auto-fix available** for most rules!
 
@@ -55,8 +57,10 @@ export default [
       'mui-v7/no-grid-item-prop': 'error',
       'mui-v7/no-lab-imports': 'error',
       'mui-v7/no-deprecated-props': 'error',
+      'mui-v7/no-deprecated-imports': 'error',
 
       // Best practices - WARNINGS (sugestões)
+      'mui-v7/prefer-slots-api': 'warn',
       'mui-v7/prefer-theme-vars': 'warn',
     },
   },
@@ -75,6 +79,8 @@ module.exports = {
     'mui-v7/no-grid-item-prop': 'error',
     'mui-v7/no-lab-imports': 'error',
     'mui-v7/no-deprecated-props': 'error',
+    'mui-v7/no-deprecated-imports': 'error',
+    'mui-v7/prefer-slots-api': 'warn',
     'mui-v7/prefer-theme-vars': 'warn',
   },
 }
@@ -113,9 +119,9 @@ import { Grid } from '@mui/material'
 import { gridClasses } from '@mui/material'
 ```
 
-#### `mui-v7/no-grid-item-prop`
+#### `mui-v7/no-grid-item-prop` ✨ IMPROVED in v1.3.0
 
-Grid doesn't use `item` prop anymore, use `size` instead.
+Grid doesn't use `item` prop anymore, use `size` instead. Now with **auto-fix**!
 
 ```typescript
 // ❌ Breaks in V7
@@ -145,13 +151,16 @@ import { Skeleton } from '@mui/material'
 
 **Moved components:** Alert, AlertTitle, Autocomplete, AvatarGroup, Pagination, PaginationItem, Rating, Skeleton, SpeedDial, SpeedDialAction, SpeedDialIcon, TabContext, TabList, TabPanel, Timeline*, ToggleButton, ToggleButtonGroup, TreeView, TreeItem
 
-#### `mui-v7/no-deprecated-props`
+#### `mui-v7/no-deprecated-props` ✨ IMPROVED in v1.3.0
 
-Detects props removed in V7.
+Detects props and components removed in V7.
 
 ```typescript
 // ❌ Dialog.onBackdropClick - REMOVED
 <Dialog onBackdropClick={handleClick}>
+
+// ❌ Modal.onBackdropClick - REMOVED (NEW!)
+<Modal onBackdropClick={handleClick}>
 
 // ✅ Use onClose with reason check
 <Dialog onClose={(event, reason) => {
@@ -163,11 +172,14 @@ Detects props removed in V7.
 // ❌ InputLabel size="normal" - RENAMED
 <InputLabel size="normal">
 
-// ✅ Use size="medium"
+// ✅ Use size="medium" (with auto-fix!)
 <InputLabel size="medium">
 
 // ❌ Hidden component - REMOVED
 <Hidden xlUp><Paper /></Hidden>
+
+// ❌ PigmentHidden component - REMOVED (NEW!)
+<PigmentHidden xlUp><Paper /></PigmentHidden>
 
 // ✅ Use sx prop
 <Paper sx={{ display: { xl: 'none' } }} />
@@ -177,9 +189,45 @@ const hidden = useMediaQuery(theme => theme.breakpoints.up('xl'))
 return hidden ? null : <Paper />
 ```
 
+#### `mui-v7/no-deprecated-imports` ✨ NEW in v1.3.0
+
+Detects deprecated imports removed in V7.
+
+```typescript
+// ❌ createMuiTheme - REMOVED
+import { createMuiTheme } from '@mui/material/styles'
+
+// ✅ Use createTheme (with auto-fix!)
+import { createTheme } from '@mui/material/styles'
+
+// ❌ experimentalStyled - REMOVED
+import { experimentalStyled } from '@mui/material/styles'
+
+// ✅ Use styled (with auto-fix!)
+import { styled } from '@mui/material/styles'
+```
+
 ### 💡 Best Practices (Warnings)
 
 These are suggestions, not breaking changes.
+
+#### `mui-v7/prefer-slots-api` ✨ NEW in v1.3.0
+
+Recommends using slots/slotProps instead of components/componentsProps.
+
+```typescript
+// ⚠️ Deprecated (still works but will be removed)
+<TextField
+  components={{ Input: CustomInput }}
+  componentsProps={{ input: { className: 'custom' } }}
+/>
+
+// ✅ Recommended: New slots API
+<TextField
+  slots={{ input: CustomInput }}
+  slotProps={{ input: { className: 'custom' } }}
+/>
+```
 
 #### `mui-v7/prefer-theme-vars`
 
@@ -242,6 +290,25 @@ export default [
 
 ## 🆕 What's New
 
+### v1.3.0 (2025-11-14) - Major Update! 🎉
+
+#### New Rules
+- ✨ **no-deprecated-imports**: Detects `createMuiTheme` and `experimentalStyled` (with auto-fix!)
+- ✨ **prefer-slots-api**: Recommends `slots`/`slotProps` over `components`/`componentsProps`
+
+#### Enhanced Rules
+- 🔧 **no-deprecated-props**: Now detects `Modal.onBackdropClick` and `PigmentHidden` component
+- 🔧 **no-deprecated-props**: Auto-fix for `InputLabel size="normal"` → `size="medium"`
+- 🔧 **no-grid-item-prop**: Smart auto-fix that converts breakpoint props to `size` object
+- 🔧 **no-grid2-import**: Improved fix that properly renames `Grid2` → `Grid` and `grid2Classes` → `gridClasses`
+- 🔧 **no-unstable-grid**: Better handling of default imports
+
+#### Code Quality
+- ✅ Added comprehensive test suite with 50+ test cases
+- 🛡️ Added optional chaining (`?.`) for safer AST navigation
+- 📦 Updated package.json with proper test scripts
+- 🔄 Updated to run tests before publishing (`prepublishOnly`)
+
 ### v1.2.1 (2025-10-30)
 
 #### UX Improvements
@@ -298,6 +365,20 @@ npx eslint . --fix
 ```
 
 4. Fix remaining issues manually (the plugin will guide you!)
+
+## 🧪 Testing
+
+Run the comprehensive test suite:
+
+```bash
+npm test
+```
+
+Watch mode for development:
+
+```bash
+npm run test:watch
+```
 
 ## 🤝 Contributing
 
