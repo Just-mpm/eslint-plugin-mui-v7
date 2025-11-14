@@ -171,6 +171,7 @@ ruleTester.run('no-deprecated-imports', plugin.rules['no-deprecated-imports'], {
   valid: [
     { code: 'import { createTheme } from "@mui/material/styles"' },
     { code: 'import { styled } from "@mui/material/styles"' },
+    { code: 'import { StyledEngineProvider } from "@mui/material/styles"' },
   ],
   invalid: [
     {
@@ -182,6 +183,16 @@ ruleTester.run('no-deprecated-imports', plugin.rules['no-deprecated-imports'], {
       code: 'import { experimentalStyled } from "@mui/material/styles"',
       errors: [{ messageId: 'experimentalStyled' }],
       output: 'import { styled } from "@mui/material/styles"',
+    },
+    {
+      code: 'import { StyledEngineProvider } from "@mui/material"',
+      errors: [{ messageId: 'styledEngineProvider' }],
+      output: 'import { StyledEngineProvider } from "@mui/material/styles"',
+    },
+    {
+      code: 'import { Button, StyledEngineProvider } from "@mui/material"',
+      errors: [{ messageId: 'styledEngineProvider' }],
+      output: 'import { Button, StyledEngineProvider } from "@mui/material/styles"',
     },
   ],
 });

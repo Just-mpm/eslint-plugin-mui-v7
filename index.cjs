@@ -4,7 +4,7 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.5.0
+ * @version 1.5.1
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -469,6 +469,13 @@ const muiV7Rules = {
           '✅ Forma nova (V7):\n' +
           '   import { styled } from "@mui/material/styles"\n\n' +
           '💡 O styled agora é estável e totalmente suportado!',
+
+        styledEngineProvider: '⚙️ StyledEngineProvider não pode mais ser importado de @mui/material!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   import { StyledEngineProvider } from "@mui/material"\n\n' +
+          '✅ Forma nova (V7):\n' +
+          '   import { StyledEngineProvider } from "@mui/material/styles"\n\n' +
+          '💡 A localização correta desde V5 é @mui/material/styles!',
       },
       schema: [],
       fixable: 'code',
@@ -477,6 +484,22 @@ const muiV7Rules = {
       return {
         ImportDeclaration(node) {
           const source = node.source.value;
+
+          // Detecta StyledEngineProvider sendo importado de @mui/material (errado)
+          if (source === '@mui/material') {
+            node.specifiers.forEach(spec => {
+              if (spec.type === 'ImportSpecifier' && spec.imported.name === 'StyledEngineProvider') {
+                context.report({
+                  node,
+                  messageId: 'styledEngineProvider',
+                  fix(fixer) {
+                    // Muda o source de '@mui/material' para '@mui/material/styles'
+                    return fixer.replaceText(node.source, '"@mui/material/styles"');
+                  },
+                });
+              }
+            });
+          }
 
           // Detecta imports de @mui/material/styles
           if (source === '@mui/material/styles' || source === '@mui/material') {
