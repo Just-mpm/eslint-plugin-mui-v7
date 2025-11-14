@@ -104,10 +104,17 @@ ruleTester.run('no-grid-item-prop', plugin.rules['no-grid-item-prop'], {
     {
       code: '<Grid item xs={12}>Content</Grid>',
       errors: [{ messageId: 'gridItemProp' }],
+      output: '<Grid size={12}>Content</Grid>',
     },
     {
       code: '<Grid xs={12}>Content</Grid>',
       errors: [{ messageId: 'gridItemProp' }],
+      output: '<Grid size={12}>Content</Grid>',
+    },
+    {
+      code: '<Grid item xs={12} sm={6}>Content</Grid>',
+      errors: [{ messageId: 'gridItemProp' }],
+      output: '<Grid size={{ xs: 12, sm: 6 }}>Content</Grid>',
     },
   ],
 });
@@ -181,15 +188,24 @@ ruleTester.run('prefer-slots-api', plugin.rules['prefer-slots-api'], {
   valid: [
     { code: '<TextField />' },
     { code: '<TextField label="Test" />' },
+    { code: '<TextField slots={obj} />' },
+    { code: '<TextField slotProps={obj} />' },
   ],
   invalid: [
     {
       code: '<TextField components={obj} />',
       errors: [{ messageId: 'useSlots' }],
+      output: '<TextField slots={obj} />',
     },
     {
       code: '<TextField componentsProps={obj} />',
       errors: [{ messageId: 'useSlots' }],
+      output: '<TextField slotProps={obj} />',
+    },
+    {
+      code: '<TextField components={obj} componentsProps={props} />',
+      errors: [{ messageId: 'useSlots' }],
+      output: '<TextField slots={obj} slotProps={props} />',
     },
   ],
 });

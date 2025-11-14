@@ -202,8 +202,11 @@ const muiV7Rules = {
           '   Você pode usar: size, offset, spacing responsivo e mais.',
       },
       schema: [],
+      fixable: 'code',
     },
     create(context) {
+      const sourceCode = context.getSourceCode();
+
       return {
         JSXOpeningElement(node) {
           if (node.name?.name === 'Grid') {
@@ -215,19 +218,107 @@ const muiV7Rules = {
             // Grid container pode ter breakpoint props (xs, sm, etc) sem problema
             if (hasContainerProp) return;
 
-            const hasItemProp = node.attributes.some(
+            const itemProp = node.attributes.find(
               attr => attr.type === 'JSXAttribute' && attr.name?.name === 'item'
             );
 
-            const hasBreakpointProps = node.attributes.some(
+            const breakpointProps = node.attributes.filter(
               attr => attr.type === 'JSXAttribute' &&
                 ['xs', 'sm', 'md', 'lg', 'xl'].includes(attr.name?.name)
             );
 
-            if (hasItemProp || hasBreakpointProps) {
+            if (itemProp || breakpointProps.length > 0) {
               context.report({
                 node,
                 messageId: 'gridItemProp',
+                fix(fixer) {
+                  const fixes = [];
+                  const propsToRemove = [];
+
+                  // Adiciona prop item para remoção
+                  if (itemProp) {
+                    propsToRemove.push(itemProp);
+                  }
+
+                  // Só faz autofix de breakpoints se forem valores literais simples
+                  if (breakpointProps.length > 0) {
+                    // Verifica se todos os valores são literais simples
+                    const allSimpleLiterals = breakpointProps.every(prop => {
+                      if (!prop.value) return false;
+                      // Literal direto: xs="12" ou xs={12}
+                      if (prop.value.type === 'Literal') return true;
+                      // JSXExpressionContainer com Literal: xs={12}
+                      if (prop.value.type === 'JSXExpressionContainer' &&
+                          prop.value.expression?.type === 'Literal') return true;
+                      return false;
+                    });
+
+                    if (allSimpleLiterals) {
+                      // Extrai valores
+                      const breakpointValues = breakpointProps.map(prop => {
+                        const name = prop.name.name;
+                        let value;
+
+                        if (prop.value.type === 'Literal') {
+                          value = prop.value.value;
+                        } else if (prop.value.type === 'JSXExpressionContainer') {
+                          value = prop.value.expression.value;
+                        }
+
+                        return { name, value };
+                      });
+
+                      // Adiciona props de breakpoint para remoção
+                      propsToRemove.push(...breakpointProps);
+
+                      // Remove todas as props (incluindo espaços)
+                      propsToRemove.forEach((prop, index) => {
+                        const sourceCodeText = sourceCode.getText();
+                        let start = prop.range[0];
+                        let end = prop.range[1];
+
+                        // Remove espaço antes da prop
+                        while (start > 0 && /\s/.test(sourceCodeText[start - 1])) {
+                          start--;
+                        }
+
+                        fixes.push(fixer.removeRange([start, end]));
+                      });
+
+                      // Cria a nova prop size
+                      let sizeValue;
+                      if (breakpointValues.length === 1) {
+                        // Caso simples: size={12}
+                        const { value } = breakpointValues[0];
+                        sizeValue = `size={${JSON.stringify(value)}}`;
+                      } else {
+                        // Múltiplos breakpoints: size={{ xs: 12, sm: 6 }}
+                        const objPairs = breakpointValues
+                          .map(({ name, value }) => `${name}: ${JSON.stringify(value)}`)
+                          .join(', ');
+                        sizeValue = `size={{ ${objPairs} }}`;
+                      }
+
+                      // Insere a prop size após a tag de abertura
+                      const insertPosition = node.name.range[1];
+                      fixes.push(fixer.insertTextAfterRange([insertPosition, insertPosition], ` ${sizeValue}`));
+                    }
+                  } else if (itemProp) {
+                    // Apenas remove a prop item (sem adicionar size)
+                    const sourceCodeText = sourceCode.getText();
+                    let start = itemProp.range[0];
+                    let end = itemProp.range[1];
+
+                    // Remove espaço antes da prop
+                    while (start > 0 && /\s/.test(sourceCodeText[start - 1])) {
+                      start--;
+                    }
+
+                    fixes.push(fixer.removeRange([start, end]));
+                  }
+
+                  return fixes.length > 0 ? fixes : null;
+                },
               });
             }
           }
@@ -426,19 +517,30 @@ const muiV7Rules = {
           '💡 A nova API é mais consistente e flexível!',
       },
       schema: [],
+      fixable: 'code',
     },
     create(context) {
       return {
         JSXOpeningElement(node) {
-          const hasComponentsProp = node.attributes.some(
+          const deprecatedProps = node.attributes.filter(
             attr => attr.type === 'JSXAttribute' &&
               (attr.name?.name === 'components' || attr.name?.name === 'componentsProps')
           );
 
-          if (hasComponentsProp) {
+          if (deprecatedProps.length > 0) {
             context.report({
               node,
               messageId: 'useSlots',
+              fix(fixer) {
+                // Renomeia cada prop depreciada
+                return deprecatedProps.map(attr => {
+                  if (attr.name.name === 'components') {
+                    return fixer.replaceText(attr.name, 'slots');
+                  } else if (attr.name.name === 'componentsProps') {
+                    return fixer.replaceText(attr.name, 'slotProps');
+                  }
+                }).filter(Boolean);
+              },
             });
           }
         },
