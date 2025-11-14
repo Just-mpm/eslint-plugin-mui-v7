@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-11-14 - Full English Translation! 🌍
+
+### Changed
+- 🌍 **Complete translation to English**: ALL error messages, descriptions, and code comments are now in English
+  - Translated **10 rule descriptions** and all error messages
+  - Translated **89+ inline code comments**
+  - Updated README examples to English
+  - Better international reach and accessibility
+
+### Translation Patterns
+- "Forma antiga" → "Old way"
+- "Forma nova" → "New way"
+- "foi removido" → "was removed"
+- "não usa mais" → "no longer uses"
+- All emojis preserved (🚀, 🔧, ✅, 💡, etc.)
+- Technical accuracy maintained throughout
+
+### Why This Release?
+This is a **minor version release** that makes the plugin truly international. All user-facing messages and documentation are now in English, making it accessible to the global JavaScript/React community while maintaining the friendly, educational tone with emojis.
+
+**Benefits:**
+- ✅ Accessible to international developers
+- ✅ Maintains educational, friendly tone
+- ✅ All emojis and formatting preserved
+- ✅ 100% backward compatible (no breaking changes)
+
+---
+
 ## [1.5.1] - 2025-11-14 - Complete MUI V7 Breaking Changes Coverage! ✅
 
 ### Added

@@ -123,15 +123,15 @@ For issues that can't be auto-fixed (like spread props), the plugin provides hel
 ```
 ❌ mui-v7/no-grid-item-prop
 
-🎯 Grid no MUI V7 não usa mais a prop `item`!
+🎯 Grid in MUI V7 no longer uses the `item` prop!
 
-🔧 Forma antiga (V6):
+🔧 Old way (V6):
    <Grid item xs={12} sm={6}>
 
-✅ Forma nova (V7):
+✅ New way (V7):
    <Grid size={{ xs: 12, sm: 6 }}>
 
-💡 A nova sintaxe é mais limpa e poderosa!
+💡 The new syntax is cleaner and more powerful!
 ```
 
 ### Complete Example
@@ -432,16 +432,16 @@ const Custom = styled('div')(({ theme }) => ({
 The plugin provides educational messages with emojis and examples:
 
 ```
-🎯 Grid no MUI V7 não usa mais a prop `item`!
+🎯 Grid in MUI V7 no longer uses the `item` prop!
 
-🔧 Forma antiga (V6):
+🔧 Old way (V6):
    <Grid item xs={12} sm={6} md={4}>
 
-✅ Forma nova (V7):
+✅ New way (V7):
    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
 
-💡 A nova sintaxe é mais limpa e poderosa!
-   Você pode usar: size, offset, spacing responsivo e mais.
+💡 The new syntax is cleaner and more powerful!
+   You can use: size, offset, responsive spacing, and more.
 ```
 
 ## 🔧 Configuration Presets
