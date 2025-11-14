@@ -12,7 +12,6 @@ This plugin focuses on **breaking changes only** - code that will actually break
 
 ## ✨ Features
 
-- 🚀 **Detect Unstable_Grid2 usage** - Now promoted to stable Grid
 - ⚠️ **Catch Grid2 usage** - Grid2 was renamed to Grid in V7
 - 🎯 **Grid item prop detection** - Grid doesn't use `item` prop anymore, use `size` instead
 - ✨ **Find moved @mui/lab components** - Alert, Skeleton, Rating, etc. are now in @mui/material
@@ -76,7 +75,6 @@ module.exports = {
   plugins: ['mui-v7'],
   rules: {
     // Breaking changes - ERRORS
-    'mui-v7/no-unstable-grid': 'error',
     'mui-v7/no-grid2-import': 'error',
     'mui-v7/no-grid-item-prop': 'error',
     'mui-v7/no-lab-imports': 'error',
@@ -190,7 +188,6 @@ export default [
     },
     rules: {
       // Breaking changes - ERRORS (código quebra)
-      'mui-v7/no-unstable-grid': 'error',
       'mui-v7/no-grid2-import': 'error',
       'mui-v7/no-grid-item-prop': 'error',
       'mui-v7/no-lab-imports': 'error',
@@ -212,8 +209,7 @@ export default [
 // .eslintrc.js
 module.exports = {
   plugins: ['mui-v7'],
-  rules: {
-    'mui-v7/no-unstable-grid': 'error',
+  rules: {,
     'mui-v7/no-grid2-import': 'error',
     'mui-v7/no-grid-item-prop': 'error',
     'mui-v7/no-lab-imports': 'error',
@@ -231,19 +227,6 @@ module.exports = {
 ### 🚨 Breaking Changes (Errors)
 
 These rules detect code that **WILL BREAK** in MUI V7.
-
-#### `mui-v7/no-unstable-grid` ✨ NEW in v1.1.0
-
-Unstable_Grid2 was promoted to stable Grid in V7.
-
-```typescript
-// ❌ Breaks in V7
-import Grid from '@mui/material/Unstable_Grid2'
-import Grid2 from '@mui/material/Unstable_Grid2'
-
-// ✅ Recommended
-import { Grid } from '@mui/material'
-```
 
 #### `mui-v7/no-grid2-import`
 
@@ -501,7 +484,6 @@ export default [
 - 🔧 **no-deprecated-props**: Auto-fix for `InputLabel size="normal"` → `size="medium"`
 - 🔧 **no-grid-item-prop**: Smart auto-fix that converts breakpoint props to `size` object
 - 🔧 **no-grid2-import**: Improved fix that properly renames `Grid2` → `Grid` and `grid2Classes` → `gridClasses`
-- 🔧 **no-unstable-grid**: Better handling of default imports
 
 #### Code Quality
 - ✅ Added comprehensive test suite with 50+ test cases
@@ -527,44 +509,6 @@ export default [
 #### Internal
 - 🏗️ Formalized AST traversal depth tracking with MAX_DEPTH constant
 - 💾 Source text caching to prevent redundant file reads
-
-### v1.1.0 (2025-01-27)
-
-#### Added
-- ✨ New rule `no-unstable-grid` - Detects Unstable_Grid2 usage
-
-#### Changed
-- 📝 All import examples now show recommended style: `import { Grid } from '@mui/material'`
-- 🎯 Refocused on breaking changes only (removed non-breaking rules)
-- 📦 Updated plugin description and categories
-
-#### Removed
-- ❌ `no-deep-imports` - Not a breaking change in V7
-- ❌ `no-old-grid-import` - Confusing and not a breaking change
-
-## 📚 Migration Guide
-
-1. Install the plugin:
-```bash
-npm install --save-dev eslint-plugin-mui-v7
-```
-
-2. Add to your ESLint config:
-```javascript
-// eslint.config.js
-import muiV7Plugin from 'eslint-plugin-mui-v7'
-
-export default [
-  muiV7Plugin.configs.recommended,
-]
-```
-
-3. Run ESLint:
-```bash
-npx eslint . --fix
-```
-
-4. Fix remaining issues manually (the plugin will guide you!)
 
 ## ⚠️ Known Limitations
 
