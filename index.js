@@ -4,11 +4,19 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.3.0
+ * @version 1.3.1
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
  */
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 // Define moved components at module scope to avoid recreation on every rule invocation
 const MOVED_COMPONENTS = new Set([
@@ -203,6 +211,14 @@ const muiV7Rules = {
       return {
         JSXOpeningElement(node) {
           if (node.name?.name === 'Grid') {
+            // Verifica se é um Grid container (não deve reportar erro)
+            const hasContainerProp = node.attributes.some(
+              attr => attr.type === 'JSXAttribute' && attr.name?.name === 'container'
+            );
+
+            // Grid container pode ter breakpoint props (xs, sm, etc) sem problema
+            if (hasContainerProp) return;
+
             const hasItemProp = node.attributes.some(
               attr => attr.type === 'JSXAttribute' && attr.name?.name === 'item'
             );
@@ -397,6 +413,73 @@ const muiV7Rules = {
     },
   },
 
+  'no-deep-imports': {
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Deep imports quebram no MUI V7 devido ao novo exports field',
+        category: 'Breaking Changes',
+        recommended: true,
+      },
+      messages: {
+        deepImport: '📦 Deep imports não funcionam mais no MUI V7!\n\n' +
+          '🔧 Forma antiga (V6):\n' +
+          '   import {{ importName }} from "{{ source }}"\n\n' +
+          '✅ Forma nova (V7):\n' +
+          '   import { {{ importName }} } from "{{ suggestedSource }}"\n\n' +
+          '💡 O MUI V7 usa exports field no package.json, que bloqueia deep imports.',
+      },
+      schema: [],
+      fixable: 'code',
+    },
+    create(context) {
+      return {
+        ImportDeclaration(node) {
+          const source = node.source.value;
+
+          // Detecta deep imports do MUI (mais de um nível de profundidade)
+          // Exemplo: @mui/material/styles/createTheme
+          const muiDeepImportRegex = /^@mui\/(material|system|joy)\/([^/]+)\/(.+)$/;
+          const match = source.match(muiDeepImportRegex);
+
+          if (match) {
+            const [, package_, componentDir, deepPath] = match;
+            const suggestedSource = `@mui/${package_}`;
+
+            // Infere o nome do componente a partir do diretório (ex: Button de /Button/...)
+            const importName = componentDir;
+            const localName = node.specifiers[0]?.local?.name || importName;
+
+            context.report({
+              node,
+              messageId: 'deepImport',
+              data: {
+                source,
+                suggestedSource,
+                importName,
+              },
+              fix(fixer) {
+                const fixes = [fixer.replaceText(node.source, `"${suggestedSource}"`)];
+
+                // Converte default import para named import
+                if (node.specifiers[0]?.type === 'ImportDefaultSpecifier') {
+                  // Se o nome local é igual ao nome importado, usa sintaxe simples
+                  if (importName === localName) {
+                    fixes.push(fixer.replaceText(node.specifiers[0], `{ ${importName} }`));
+                  } else {
+                    fixes.push(fixer.replaceText(node.specifiers[0], `{ ${importName} as ${localName} }`));
+                  }
+                }
+
+                return fixes;
+              },
+            });
+          }
+        },
+      };
+    },
+  },
+
   'prefer-slots-api': {
     meta: {
       type: 'suggestion',
@@ -538,6 +621,10 @@ const muiV7Rules = {
 
 // Exporta o plugin (ESM e CommonJS compatível)
 const plugin = {
+  meta: {
+    name: packageJson.name,
+    version: packageJson.version,
+  },
   rules: muiV7Rules,
   configs: {
     recommended: {
@@ -550,6 +637,7 @@ const plugin = {
         'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
+        'mui-v7/no-deep-imports': 'error',
         // Best practices - WARNINGS (sugestões)
         'mui-v7/prefer-slots-api': 'warn',
         'mui-v7/prefer-theme-vars': 'warn',
@@ -565,6 +653,7 @@ const plugin = {
         'mui-v7/no-lab-imports': 'error',
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
+        'mui-v7/no-deep-imports': 'error',
         // Best practices - ERRORS também no strict
         'mui-v7/prefer-slots-api': 'error',
         'mui-v7/prefer-theme-vars': 'error',

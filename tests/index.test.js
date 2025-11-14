@@ -97,6 +97,7 @@ console.log('Testing no-grid-item-prop...');
 ruleTester.run('no-grid-item-prop', plugin.rules['no-grid-item-prop'], {
   valid: [
     { code: '<Grid container spacing={2}>Content</Grid>' },
+    { code: '<Grid container xs={12}>Content</Grid>' }, // Grid container pode ter breakpoint props
     { code: '<Box xs={12}>Content</Box>' },
   ],
   invalid: [
@@ -207,6 +208,31 @@ ruleTester.run('prefer-theme-vars', plugin.rules['prefer-theme-vars'], {
     {
       code: 'const color = theme.palette.primary.main',
       errors: [{ messageId: 'useThemeVars' }],
+    },
+  ],
+});
+
+// =============================================================================
+// Test: no-deep-imports
+// =============================================================================
+
+console.log('Testing no-deep-imports...');
+ruleTester.run('no-deep-imports', plugin.rules['no-deep-imports'], {
+  valid: [
+    { code: 'import { Button } from "@mui/material"' },
+    { code: 'import { styled } from "@mui/system"' },
+    { code: 'import Button from "@mui/material/Button"' }, // Este é permitido (apenas 1 nível)
+  ],
+  invalid: [
+    {
+      code: 'import Button from "@mui/material/Button/Button"',
+      errors: [{ messageId: 'deepImport' }],
+      output: 'import { Button } from "@mui/material"',
+    },
+    {
+      code: 'import styled from "@mui/system/styled/styled"',
+      errors: [{ messageId: 'deepImport' }],
+      output: 'import { styled } from "@mui/system"',
     },
   ],
 });
