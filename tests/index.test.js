@@ -226,11 +226,39 @@ ruleTester.run('prefer-theme-vars', plugin.rules['prefer-theme-vars'], {
   valid: [
     { code: 'const color = theme.vars.palette.primary.main' },
     { code: 'const text = theme.typography.h1' },
+    // Não detecta theme.palette fora de theme.vars context:
+    { code: 'const bg = theme.vars.palette.background.default' },
   ],
   invalid: [
+    // Caso básico - autofix
     {
       code: 'const color = theme.palette.primary.main',
       errors: [{ messageId: 'useThemeVars' }],
+      output: 'const color = theme.vars.palette.primary.main',
+    },
+    // Múltiplas propriedades - autofix
+    {
+      code: 'const bg = theme.palette.background.default',
+      errors: [{ messageId: 'useThemeVars' }],
+      output: 'const bg = theme.vars.palette.background.default',
+    },
+    // Em template literal - autofix
+    {
+      code: 'const css = `color: ${theme.palette.text.primary}`',
+      errors: [{ messageId: 'useThemeVars' }],
+      output: 'const css = `color: ${theme.vars.palette.text.primary}`',
+    },
+    // Em objeto styled - autofix
+    {
+      code: 'const Box = styled("div")(({ theme }) => ({ color: theme.palette.primary.main }))',
+      errors: [{ messageId: 'useThemeVars' }],
+      output: 'const Box = styled("div")(({ theme }) => ({ color: theme.vars.palette.primary.main }))',
+    },
+    // Em sx prop - autofix
+    {
+      code: '<Box sx={(theme) => ({ borderColor: theme.palette.divider })} />',
+      errors: [{ messageId: 'useThemeVars' }],
+      output: '<Box sx={(theme) => ({ borderColor: theme.vars.palette.divider })} />',
     },
   ],
 });

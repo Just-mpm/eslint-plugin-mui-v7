@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-11-14 - 🎯 100% Autofix Coverage Achieved! 🎉
+
+### Added
+- ✨ **Autofix for `prefer-theme-vars` rule**: Now automatically transforms `theme.palette.*` → `theme.vars.palette.*`
+  - Works in styled components, sx props, template literals, and object expressions
+  - Safely handles edge cases (ternary conditionals, non-null assertions)
+  - **This completes 100% autofix coverage for all 10 rules!** 🎯
+
+### Changed
+- 🔧 **Autofix coverage**: **10/10 rules (100%)** - Up from 9/10 (90%)
+- 🧪 **Added 5 new test cases** for `prefer-theme-vars` autofix scenarios
+- 📝 **Updated README**: Highlighted 100% autofix coverage achievement
+
+### Why This Release?
+This is a **feature release** that achieves a major milestone: **100% autofix coverage**! Every single rule in the plugin now has automatic fixing capabilities, making migrations from MUI V6 to V7 even faster and easier.
+
+**Benefits:**
+- ✅ Developers can now auto-fix **ALL** breaking changes and best practices
+- ✅ Saves even more time on migrations
+- ✅ Encourages adoption of CSS Variables for better dark mode support
+
+**Example transformations:**
+```typescript
+// Before (manual fix required):
+const Box = styled('div')(({ theme }) => ({
+  color: theme.palette.primary.main,
+  background: theme.palette.background.default,
+}));
+
+// After (auto-fixed with --fix):
+const Box = styled('div')(({ theme }) => ({
+  color: theme.vars.palette.primary.main,
+  background: theme.vars.palette.background.default,
+}));
+```
+
+---
+
 ## [1.4.1] - 2025-11-14 - Critical Bug Fix: False Positives Removed! 🔧
 
 ### Fixed

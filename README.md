@@ -20,7 +20,7 @@ This plugin focuses on **breaking changes only** - code that will actually break
 - ⚠️ **GridLegacy detection** - Catch old Grid imports that are now deprecated
 - 🔧 **Components/componentsProps deprecation** - Suggests slots/slotProps API
 - 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
-- 🔧 **Auto-fix available** for 9/10 rules (90%)!
+- 🔧 **Auto-fix available** for 10/10 rules (100%)! 🎯
 
 ## 📦 Installation
 

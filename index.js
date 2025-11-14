@@ -4,7 +4,7 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.4.1
+ * @version 1.5.0
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -649,6 +649,7 @@ const muiV7Rules = {
           '📚 Benefícios: Performance + Dark mode automático!',
       },
       schema: [],
+      fixable: 'code',
     },
     create(context) {
       const sourceCode = context.getSourceCode();
@@ -727,6 +728,19 @@ const muiV7Rules = {
           context.report({
             node,
             messageId: 'useThemeVars',
+            fix(fixer) {
+              // Transforma: theme.palette.* → theme.vars.palette.*
+              // node.object.object é 'theme'
+              // node.object.property é 'palette'
+              const themeNode = node.object.object;
+
+              // Insere '.vars' após 'theme'
+              const insertPosition = themeNode.range[1];
+              return fixer.insertTextAfterRange(
+                [insertPosition, insertPosition],
+                '.vars'
+              );
+            },
           });
         },
       };
