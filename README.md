@@ -19,7 +19,6 @@ This plugin focuses on **breaking changes only** - code that will actually break
 - 🔄 **Detect deprecated props** - onBackdropClick, size="normal", Hidden/PigmentHidden components
 - 🎨 **Catch deprecated imports** - createMuiTheme, experimentalStyled, StyledEngineProvider wrong location
 - 📦 **Deep imports detection** - Deep imports break in V7 due to exports field
-- ⚠️ **GridLegacy detection** - Catch old Grid imports that are now deprecated
 - 🔧 **Components/componentsProps deprecation** - Suggests slots/slotProps API
 - 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
 - 🔧 **Auto-fix available** for 10/10 rules (100%)! 🎯
@@ -198,7 +197,6 @@ export default [
       'mui-v7/no-deprecated-props': 'error',
       'mui-v7/no-deprecated-imports': 'error',
       'mui-v7/no-deep-imports': 'error',
-      'mui-v7/no-grid-legacy': 'error',
 
       // Best practices - WARNINGS (sugestões)
       'mui-v7/prefer-slots-api': 'warn',
@@ -222,7 +220,6 @@ module.exports = {
     'mui-v7/no-deprecated-props': 'error',
     'mui-v7/no-deprecated-imports': 'error',
     'mui-v7/no-deep-imports': 'error',
-    'mui-v7/no-grid-legacy': 'error',
     'mui-v7/prefer-slots-api': 'warn',
     'mui-v7/prefer-theme-vars': 'warn',
   },
@@ -372,22 +369,6 @@ import Button from '@mui/material/Button/Button'
 import { Button } from '@mui/material'
 ```
 
-#### `mui-v7/no-grid-legacy` ✨ NEW in v1.4.0
-
-Detects old Grid imports that are now deprecated.
-
-```typescript
-// ❌ Old Grid import (now GridLegacy)
-import Grid from '@mui/material/Grid'
-
-// ✅ Option 1: Keep using old Grid temporarily (with auto-fix!)
-import { GridLegacy as Grid } from '@mui/material'
-
-// ✅ Option 2: Migrate to new Grid (recommended!)
-import { Grid } from '@mui/material'
-// Use size={{ xs: 12 }} instead of item xs={12}
-```
-
 ### 💡 Best Practices (Warnings)
 
 These are suggestions, not breaking changes.
@@ -504,7 +485,6 @@ export default [
 
 #### Added
 - ✨ **no-deep-imports**: Detects deep imports that break due to exports field (with auto-fix!)
-- ✨ **no-grid-legacy**: Detects old Grid imports now renamed to GridLegacy (with auto-fix!)
 
 #### Enhanced
 - 🔧 **no-grid-item-prop**: Added safety check to prevent autofix when spread props are present

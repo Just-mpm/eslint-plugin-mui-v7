@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-mui-v7",
-  "version": "1.6.0",
+  "version": "1.6.2",
   "description": "ESLint plugin focused on Material-UI V6 to V7 breaking changes with educational error messages",
   "keywords": [
     "eslint",
