@@ -4,7 +4,7 @@
  * Detecta automaticamente código que QUEBRA na migração V6 → V7
  * e fornece mensagens educativas para corrigir.
  *
- * @version 1.3.1
+ * @version 1.4.1
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -15,6 +15,8 @@ const { join } = require('path');
 const packageJson = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 // Define moved components at module scope to avoid recreation on every rule invocation
+// ⚠️ LISTA OFICIAL do codemod MUI v7.0.0/lab-removed-components
+// Fonte: https://github.com/mui/material-ui/blob/master/packages/mui-codemod/README.md
 const MOVED_COMPONENTS = new Set([
   'Alert', 'AlertTitle',
   'Autocomplete',
@@ -23,11 +25,11 @@ const MOVED_COMPONENTS = new Set([
   'Rating',
   'Skeleton',
   'SpeedDial', 'SpeedDialAction', 'SpeedDialIcon',
-  'TabContext', 'TabList', 'TabPanel',
-  'Timeline', 'TimelineConnector', 'TimelineContent', 'TimelineDot',
-  'TimelineItem', 'TimelineOppositeContent', 'TimelineSeparator',
   'ToggleButton', 'ToggleButtonGroup',
-  'TreeView', 'TreeItem',
+  // ❌ NÃO INCLUÍDOS (ainda em @mui/lab ou movidos para MUI X):
+  // - TabContext, TabList, TabPanel → Ainda em @mui/lab
+  // - Timeline* (7 componentes) → Ainda em @mui/lab
+  // - TreeView, TreeItem → Movidos para @mui/x-tree-view
 ]);
 
 const muiV7Rules = {

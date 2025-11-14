@@ -155,7 +155,11 @@ import { Alert } from '@mui/material'
 import { Skeleton } from '@mui/material'
 ```
 
-**Moved components:** Alert, AlertTitle, Autocomplete, AvatarGroup, Pagination, PaginationItem, Rating, Skeleton, SpeedDial, SpeedDialAction, SpeedDialIcon, TabContext, TabList, TabPanel, Timeline*, ToggleButton, ToggleButtonGroup, TreeView, TreeItem
+**Moved components:** Alert, AlertTitle, Autocomplete, AvatarGroup, Pagination, PaginationItem, Rating, Skeleton, SpeedDial, SpeedDialAction, SpeedDialIcon, ToggleButton, ToggleButtonGroup
+
+**Still in @mui/lab:** LoadingButton, Masonry, TabContext, TabList, TabPanel, Timeline (and related components)
+
+**Moved to MUI X:** TreeView and TreeItem moved to @mui/x-tree-view (not @mui/material)
 
 #### `mui-v7/no-deprecated-props` ✨ IMPROVED in v1.3.0
 

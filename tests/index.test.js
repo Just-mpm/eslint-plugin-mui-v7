@@ -73,7 +73,14 @@ console.log('Testing no-lab-imports...');
 ruleTester.run('no-lab-imports', plugin.rules['no-lab-imports'], {
   valid: [
     { code: 'import { Alert } from "@mui/material"' },
-    { code: 'import { LoadingButton } from "@mui/lab"' }, // LoadingButton não foi movido
+    // Componentes que AINDA ESTÃO no @mui/lab (não devem gerar erro):
+    { code: 'import { LoadingButton } from "@mui/lab"' },
+    { code: 'import { Timeline } from "@mui/lab"' },
+    { code: 'import { TimelineItem, TimelineContent } from "@mui/lab"' },
+    { code: 'import { TabContext, TabList, TabPanel } from "@mui/lab"' },
+    { code: 'import TabContext from "@mui/lab/TabContext"' },
+    // TreeView/TreeItem foram movidos para @mui/x-tree-view (não @mui/material):
+    { code: 'import { TreeView, TreeItem } from "@mui/lab"' },
   ],
   invalid: [
     {
