@@ -236,6 +236,17 @@ const muiV7Rules = {
                 node,
                 messageId: 'gridItemProp',
                 fix(fixer) {
+                  // 🔒 SAFETY CHECK: Não faz autofix se houver spread props
+                  // Spread props podem conter item/xs/sm/etc e sobrescrever nosso fix
+                  const hasSpreadProps = node.attributes.some(
+                    attr => attr.type === 'JSXSpreadAttribute'
+                  );
+
+                  if (hasSpreadProps) {
+                    // Apenas reporta o problema, sem autofix (muito arriscado)
+                    return null;
+                  }
+
                   const fixes = [];
                   const propsToRemove = [];
 
@@ -719,6 +730,63 @@ const muiV7Rules = {
       };
     },
   },
+
+  'no-grid-legacy': {
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Grid antigo foi renomeado para GridLegacy no MUI V7',
+        category: 'Breaking Changes',
+        recommended: true,
+      },
+      messages: {
+        gridLegacyImport: '⚠️ O Grid antigo foi depreciado e renomeado para GridLegacy!\n\n' +
+          '🔧 Você está usando:\n' +
+          '   import Grid from "@mui/material/Grid"\n\n' +
+          '✅ Opção 1 - Continuar usando Grid antigo (temporário):\n' +
+          '   import { GridLegacy as Grid } from "@mui/material"\n\n' +
+          '✅ Opção 2 - Migrar para o novo Grid (recomendado):\n' +
+          '   import { Grid } from "@mui/material"\n' +
+          '   // Use size={{ "{"}xs: 12{"}"} }} ao invés de item xs={12}\n\n' +
+          '💡 O novo Grid é mais poderoso e usa a prop `size`!\n' +
+          '   Veja: https://mui.com/material-ui/migration/upgrade-to-grid-v2/',
+      },
+      schema: [],
+      fixable: 'code',
+    },
+    create(context) {
+      return {
+        ImportDeclaration(node) {
+          const source = node.source.value;
+
+          // Detecta import direto do Grid antigo: import Grid from '@mui/material/Grid'
+          if (source === '@mui/material/Grid') {
+            context.report({
+              node,
+              messageId: 'gridLegacyImport',
+              fix(fixer) {
+                // Sugestão de fix: trocar para GridLegacy
+                const fixes = [fixer.replaceText(node.source, '"@mui/material"')];
+
+                // Renomeia import default para GridLegacy as Grid
+                if (node.specifiers.length > 0 && node.specifiers[0].type === 'ImportDefaultSpecifier') {
+                  const localName = node.specifiers[0].local.name;
+                  if (localName === 'Grid') {
+                    fixes.push(fixer.replaceText(node.specifiers[0], '{ GridLegacy as Grid }'));
+                  } else {
+                    // Mantém o alias customizado
+                    fixes.push(fixer.replaceText(node.specifiers[0], `{ GridLegacy as ${localName} }`));
+                  }
+                }
+
+                return fixes;
+              },
+            });
+          }
+        },
+      };
+    },
+  },
 };
 
 // Exporta o plugin (ESM e CommonJS compatível)
@@ -740,6 +808,7 @@ const plugin = {
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
         'mui-v7/no-deep-imports': 'error',
+        'mui-v7/no-grid-legacy': 'error',
         // Best practices - WARNINGS (sugestões)
         'mui-v7/prefer-slots-api': 'warn',
         'mui-v7/prefer-theme-vars': 'warn',
@@ -756,6 +825,7 @@ const plugin = {
         'mui-v7/no-deprecated-props': 'error',
         'mui-v7/no-deprecated-imports': 'error',
         'mui-v7/no-deep-imports': 'error',
+        'mui-v7/no-grid-legacy': 'error',
         // Best practices - ERRORS também no strict
         'mui-v7/prefer-slots-api': 'error',
         'mui-v7/prefer-theme-vars': 'error',

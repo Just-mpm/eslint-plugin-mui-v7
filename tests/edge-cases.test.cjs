@@ -19,7 +19,7 @@ const ruleTester = new RuleTester({
 console.log('🧪 Testing Edge Cases...\n');
 
 // =============================================================================
-// Test 1: Grid com spread props
+// Test 1: Grid com spread props (NÃO deve fazer autofix - seguro!)
 // =============================================================================
 console.log('Testing Grid with spread props...');
 try {
@@ -29,11 +29,12 @@ try {
       {
         code: '<Grid {...props} item xs={12}>Content</Grid>',
         errors: [{ messageId: 'gridItemProp' }],
-        // Não deve ter autofix (muito arriscado)
+        // Não faz autofix porque spread props podem sobrescrever
+        output: null,
       },
     ],
   });
-  console.log('✅ Grid with spread props - PASSED');
+  console.log('✅ Grid with spread props - PASSED (no autofix - SAFE!)');
 } catch (error) {
   console.log('❌ Grid with spread props - FAILED:', error.message);
 }

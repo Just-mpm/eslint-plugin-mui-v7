@@ -16,9 +16,11 @@ This plugin focuses on **breaking changes only** - code that will actually break
 - ✨ **Find moved @mui/lab components** - Alert, Skeleton, Rating, etc. are now in @mui/material
 - 🔄 **Detect deprecated props** - onBackdropClick, size="normal", Hidden/PigmentHidden components
 - 🎨 **Catch deprecated imports** - createMuiTheme, experimentalStyled
+- 📦 **Deep imports detection** - Deep imports break in V7 due to exports field
+- ⚠️ **GridLegacy detection** - Catch old Grid imports that are now deprecated
 - 🔧 **Components/componentsProps deprecation** - Suggests slots/slotProps API
 - 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
-- 🔧 **Auto-fix available** for most rules!
+- 🔧 **Auto-fix available** for 9/10 rules (90%)!
 
 ## 📦 Installation
 
@@ -58,6 +60,8 @@ export default [
       'mui-v7/no-lab-imports': 'error',
       'mui-v7/no-deprecated-props': 'error',
       'mui-v7/no-deprecated-imports': 'error',
+      'mui-v7/no-deep-imports': 'error',
+      'mui-v7/no-grid-legacy': 'error',
 
       // Best practices - WARNINGS (sugestões)
       'mui-v7/prefer-slots-api': 'warn',
@@ -80,6 +84,8 @@ module.exports = {
     'mui-v7/no-lab-imports': 'error',
     'mui-v7/no-deprecated-props': 'error',
     'mui-v7/no-deprecated-imports': 'error',
+    'mui-v7/no-deep-imports': 'error',
+    'mui-v7/no-grid-legacy': 'error',
     'mui-v7/prefer-slots-api': 'warn',
     'mui-v7/prefer-theme-vars': 'warn',
   },
@@ -205,6 +211,34 @@ import { experimentalStyled } from '@mui/material/styles'
 
 // ✅ Use styled (with auto-fix!)
 import { styled } from '@mui/material/styles'
+```
+
+#### `mui-v7/no-deep-imports` ✨ NEW in v1.4.0
+
+Detects deep imports that break in V7 due to the exports field.
+
+```typescript
+// ❌ Deep imports don't work anymore
+import Button from '@mui/material/Button/Button'
+
+// ✅ Use main entry point (with auto-fix!)
+import { Button } from '@mui/material'
+```
+
+#### `mui-v7/no-grid-legacy` ✨ NEW in v1.4.0
+
+Detects old Grid imports that are now deprecated.
+
+```typescript
+// ❌ Old Grid import (now GridLegacy)
+import Grid from '@mui/material/Grid'
+
+// ✅ Option 1: Keep using old Grid temporarily (with auto-fix!)
+import { GridLegacy as Grid } from '@mui/material'
+
+// ✅ Option 2: Migrate to new Grid (recommended!)
+import { Grid } from '@mui/material'
+// Use size={{ xs: 12 }} instead of item xs={12}
 ```
 
 ### 💡 Best Practices (Warnings)
@@ -365,6 +399,68 @@ npx eslint . --fix
 ```
 
 4. Fix remaining issues manually (the plugin will guide you!)
+
+## ⚠️ Known Limitations
+
+This plugin has some limitations to ensure safe and reliable autofixes:
+
+### 1. **Spread Props are Not Auto-Fixed**
+
+When a component has spread props (`{...props}`), the autofix is disabled to avoid potential issues:
+
+```tsx
+// ❌ Plugin detects the issue but WON'T auto-fix (safe!)
+<Grid {...props} item xs={12}>Content</Grid>
+
+// Why? If props contains { item: true, xs: 6 }, the spread would override our fix
+```
+
+**Solution:** Fix manually or remove the spread props first.
+
+### 2. **Dynamic Props are Not Auto-Fixed**
+
+Complex expressions and variables are not auto-fixed:
+
+```tsx
+// ❌ Plugin detects but WON'T auto-fix (safe!)
+<Grid item xs={isMobile ? 12 : 6}>Content</Grid>
+<Grid item xs={colSize}>Content</Grid>
+```
+
+**Solution:** These require manual migration to `size` prop.
+
+### 3. **Cross-File Dependencies**
+
+The plugin cannot detect issues that span multiple files:
+
+```tsx
+// File 1: component-props.ts
+export const gridProps = { item: true, xs: 12 }
+
+// File 2: Component.tsx - Plugin won't detect this!
+<Grid {...gridProps}>Content</Grid>
+```
+
+**Solution:** Run the plugin on all files and review spread props carefully.
+
+### 4. **Best Practices vs Breaking Changes**
+
+The plugin focuses on **breaking changes only**. Some MUI best practices are not enforced:
+
+- ✅ Detects: Code that **breaks** in V7
+- ❌ Doesn't detect: Deprecated but still working code (unless it's in the migration path)
+
+### 🔗 For Complex Cases
+
+For complex migrations, consider using MUI's official codemods:
+
+```bash
+# Official MUI codemods
+npx @mui/codemod v7.0.0/grid-props <path>
+npx @mui/codemod v7.0.0/lab-removed-components <path>
+```
+
+**This plugin complements the codemods by providing continuous validation!**
 
 ## 🧪 Testing
 
