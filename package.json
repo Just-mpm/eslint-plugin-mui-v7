@@ -42,8 +42,7 @@
   ],
   "scripts": {
     "test": "node tests/index.test.js",
-    "test:watch": "node --watch tests/index.test.js",
-    "prepublishOnly": "npm test"
+    "test:watch": "node --watch tests/index.test.js"
   },
   "peerDependencies": {
     "eslint": ">=8.0.0"
