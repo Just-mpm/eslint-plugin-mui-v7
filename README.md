@@ -84,7 +84,6 @@ module.exports = {
     'mui-v7/no-deprecated-props': 'error',
     'mui-v7/no-deprecated-imports': 'error',
     'mui-v7/no-deep-imports': 'error',
-    'mui-v7/no-grid-legacy': 'error',
 
     // Best practices - WARNINGS
     'mui-v7/prefer-slots-api': 'warn',
