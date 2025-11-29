@@ -4,7 +4,7 @@
  * Automatically detects code that BREAKS when migrating from V6 → V7
  * and provides educational messages to fix it.
  *
- * @version 1.6.3
+ * @version 1.6.4
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -657,6 +657,57 @@ const muiV7Rules = {
         return sourceText.includes('theme.vars!');
       }
 
+      /**
+       * Check if the node is used as a fallback in a LogicalExpression (?? or ||)
+       * where theme.vars is used on the left side.
+       * Example: theme.vars?.palette.primary.main ?? theme.palette.primary.main
+       *          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^
+       *          left side (uses theme.vars)         right side (fallback - OK!)
+       */
+      function isThemePaletteFallbackInLogicalExpression(node) {
+        let current = node;
+        let depth = 0;
+        const MAX_DEPTH = 15;
+
+        while (current.parent && depth < MAX_DEPTH) {
+          const parent = current.parent;
+          depth++;
+
+          // Check if we're inside a LogicalExpression with ?? or ||
+          if (parent.type === 'LogicalExpression' &&
+              (parent.operator === '??' || parent.operator === '||')) {
+
+            // Check if the current node is on the RIGHT side (fallback)
+            if (parent.right === current || isDescendantOf(current, parent.right)) {
+              // Now check if the LEFT side contains theme.vars
+              const leftText = sourceCode.getText(parent.left);
+              if (leftText.includes('theme.vars')) {
+                return true; // This is a valid fallback pattern
+              }
+            }
+          }
+
+          current = parent;
+        }
+
+        return false;
+      }
+
+      /**
+       * Helper to check if a node is a descendant of another node
+       */
+      function isDescendantOf(child, ancestor) {
+        if (!ancestor || !child) return false;
+        if (child === ancestor) return true;
+
+        let current = child.parent;
+        while (current) {
+          if (current === ancestor) return true;
+          current = current.parent;
+        }
+        return false;
+      }
+
       return {
         MemberExpression(node) {
           // Detect theme.palette.* (without .vars)
@@ -674,6 +725,10 @@ const muiV7Rules = {
 
           // Ignore if already using theme.vars! (non-null assertion)
           if (isUsingNonNullAssertion(node)) return;
+
+          // Ignore if theme.palette is used as fallback after ?? or || with theme.vars on left
+          // Example: theme.vars?.palette.primary.main ?? theme.palette.primary.main
+          if (isThemePaletteFallbackInLogicalExpression(node)) return;
 
           context.report({
             node,

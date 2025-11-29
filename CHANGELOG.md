@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.4] - 2025-11-29 - Fixed prefer-theme-vars False Positives 🐛
+
+### Fixed
+- 🐛 **Fixed `prefer-theme-vars` false positives** - Rule now correctly ignores fallback patterns
+  - Previously flagged `theme.vars?.palette.primary.main ?? theme.palette.primary.main` as a warning
+  - The `theme.palette` on the right side of `??` or `||` is a **valid TypeScript fallback** pattern
+  - Now correctly detects when `theme.palette` is used as fallback after `theme.vars` on left side
+
+### Technical Details
+The rule now checks if `theme.palette.*` appears on the right side of a `LogicalExpression` (`??` or `||`) where the left side contains `theme.vars`. This is the standard TypeScript-safe pattern for accessing theme variables:
+
+```typescript
+// ✅ No longer flagged (valid fallback pattern)
+alpha(theme.vars?.palette.primary.main ?? theme.palette.primary.main, 0.08)
+
+// ✅ Still correctly flagged (no fallback, should use theme.vars)
+alpha(theme.palette.primary.main, 0.08)
+```
+
+### Why This Pattern is Valid
+In MUI V7 with TypeScript, `theme.vars` is typed as `ThemeVars | undefined`, so the fallback pattern is necessary:
+
+```typescript
+// ❌ TypeScript Error: 'theme.vars' is possibly 'undefined'
+theme.vars.palette.primary.main
+
+// ✅ TypeScript valid - fallback is required for type safety
+theme.vars?.palette.primary.main ?? theme.palette.primary.main
+```
+
+---
+
 ## [1.6.3] - 2025-11-29 - ESLint 9+ Flat Config Fix + Cleanup 🔧
 
 ### Fixed
