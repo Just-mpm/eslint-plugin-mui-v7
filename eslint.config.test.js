@@ -9,14 +9,12 @@ export default [
     },
     rules: {
       // Breaking changes - ERRORS
-      'mui-v7/no-unstable-grid': 'error',
       'mui-v7/no-grid2-import': 'error',
       'mui-v7/no-grid-item-prop': 'error',
       'mui-v7/no-lab-imports': 'error',
       'mui-v7/no-deprecated-props': 'error',
       'mui-v7/no-deprecated-imports': 'error',
       'mui-v7/no-deep-imports': 'error',
-      'mui-v7/no-grid-legacy': 'error',
 
       // Best practices - WARNINGS
       'mui-v7/prefer-slots-api': 'warn',

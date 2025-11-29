@@ -4,7 +4,7 @@
  * Automatically detects code that BREAKS when migrating from V6 → V7
  * and provides educational messages to fix it.
  *
- * @version 1.6.2
+ * @version 1.6.3
  * @created 2025-01-26
  * @updated 2025-11-14
  * @author Matheus (Koda AI Studio) + Claude Code
@@ -33,45 +33,6 @@ const MOVED_COMPONENTS = new Set([
 ]);
 
 const muiV7Rules = {
-  'no-unstable-grid': {
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Unstable_Grid2 was promoted to Grid in MUI V7',
-        category: 'Breaking Changes',
-        recommended: true,
-      },
-      messages: {
-        unstableGrid: '🚀 Unstable_Grid2 was promoted to stable Grid in MUI V7!\n\n' +
-          '🔧 Old way (V6):\n' +
-          '   import Grid from "@mui/material/Unstable_Grid2"\n' +
-          '   import Grid2 from "@mui/material/Unstable_Grid2"\n\n' +
-          '✅ New way (V7):\n' +
-          '   import { Grid } from "@mui/material"\n\n' +
-          '💡 Grid is now stable and uses the `size` prop!',
-      },
-      schema: [],
-      fixable: 'code',
-    },
-    create(context) {
-      return {
-        ImportDeclaration(node) {
-          const source = node.source.value;
-
-          if (source === '@mui/material/Unstable_Grid2') {
-            context.report({
-              node,
-              messageId: 'unstableGrid',
-              fix(fixer) {
-                return fixer.replaceText(node.source, '"@mui/material"');
-              },
-            });
-          }
-        },
-      };
-    },
-  },
-
   'no-grid2-import': {
     meta: {
       type: 'problem',
@@ -811,39 +772,45 @@ const plugin = {
     version: packageJson.version,
   },
   rules: muiV7Rules,
-  configs: {
-    recommended: {
-      plugins: ['mui-v7'],
-      rules: {
-        // Breaking changes - ERRORS (code breaks)
-        'mui-v7/no-unstable-grid': 'error',
-        'mui-v7/no-grid2-import': 'error',
-        'mui-v7/no-grid-item-prop': 'error',
-        'mui-v7/no-lab-imports': 'error',
-        'mui-v7/no-deprecated-props': 'error',
-        'mui-v7/no-deprecated-imports': 'error',
-        'mui-v7/no-deep-imports': 'error',
-        // Best practices - WARNINGS (suggestions)
-        'mui-v7/prefer-slots-api': 'warn',
-        'mui-v7/prefer-theme-vars': 'warn',
-      },
-    },
-    strict: {
-      plugins: ['mui-v7'],
-      rules: {
-        // Breaking changes - ERRORS
-        'mui-v7/no-unstable-grid': 'error',
-        'mui-v7/no-grid2-import': 'error',
-        'mui-v7/no-grid-item-prop': 'error',
-        'mui-v7/no-lab-imports': 'error',
-        'mui-v7/no-deprecated-props': 'error',
-        'mui-v7/no-deprecated-imports': 'error',
-        'mui-v7/no-deep-imports': 'error',
-        // Best practices - ERRORS also in strict mode
-        'mui-v7/prefer-slots-api': 'error',
-        'mui-v7/prefer-theme-vars': 'error',
-      },
-    },
+  configs: {},
+};
+
+// ESLint 9+ Flat Config format (self-referencing plugin object)
+plugin.configs.recommended = {
+  name: 'mui-v7/recommended',
+  plugins: {
+    'mui-v7': plugin,
+  },
+  rules: {
+    // Breaking changes - ERRORS (code breaks)
+    'mui-v7/no-grid2-import': 'error',
+    'mui-v7/no-grid-item-prop': 'error',
+    'mui-v7/no-lab-imports': 'error',
+    'mui-v7/no-deprecated-props': 'error',
+    'mui-v7/no-deprecated-imports': 'error',
+    'mui-v7/no-deep-imports': 'error',
+    // Best practices - WARNINGS (suggestions)
+    'mui-v7/prefer-slots-api': 'warn',
+    'mui-v7/prefer-theme-vars': 'warn',
+  },
+};
+
+plugin.configs.strict = {
+  name: 'mui-v7/strict',
+  plugins: {
+    'mui-v7': plugin,
+  },
+  rules: {
+    // Breaking changes - ERRORS
+    'mui-v7/no-grid2-import': 'error',
+    'mui-v7/no-grid-item-prop': 'error',
+    'mui-v7/no-lab-imports': 'error',
+    'mui-v7/no-deprecated-props': 'error',
+    'mui-v7/no-deprecated-imports': 'error',
+    'mui-v7/no-deep-imports': 'error',
+    // Best practices - ERRORS also in strict mode
+    'mui-v7/prefer-slots-api': 'error',
+    'mui-v7/prefer-theme-vars': 'error',
   },
 };
 

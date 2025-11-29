@@ -8,7 +8,7 @@ Automatically detect code that **BREAKS** when migrating from MUI V6 to V7 and t
 
 This plugin focuses on **breaking changes only** - code that will actually break when upgrading to V7. We don't warn about best practices or style preferences, just things that will cause errors.
 
-**🎉 Complete Coverage:** Detects **100% of all detectable MUI V7 breaking changes** (13/13) with **100% autofix support** (10/10 rules)!
+**🎉 Complete Coverage:** Detects **100% of all detectable MUI V7 breaking changes** with **100% autofix support** (8/8 rules)!
 
 ## ✨ Features
 
@@ -20,7 +20,7 @@ This plugin focuses on **breaking changes only** - code that will actually break
 - 📦 **Deep imports detection** - Deep imports break in V7 due to exports field
 - 🔧 **Components/componentsProps deprecation** - Suggests slots/slotProps API
 - 💡 **Theme variables suggestion** - Use `theme.vars.*` for automatic dark mode support (optional)
-- 🔧 **Auto-fix available** for 10/10 rules (100%)! 🎯
+- 🔧 **Auto-fix available** for 8/8 rules (100%)! 🎯
 
 ## 📦 Installation
 
@@ -444,8 +444,7 @@ export default [
   - Completes **100% coverage** of all detectable MUI V7 breaking changes!
 
 #### Coverage Achievement
-- ✅ **13/13** official MUI V7 breaking changes detected (100%)
-- ✅ **10/10** rules with autofix support (100%)
+- ✅ **8/8** rules with autofix support (100%)
 - ✅ **0** known false positives
 
 ### v1.5.0 (2025-11-14) - 100% Autofix! 🎯

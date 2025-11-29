@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2025-11-29 - ESLint 9+ Flat Config Fix + Cleanup 🔧
+
+### Fixed
+- 🔧 **Fixed ESLint 9+ Flat Config format** - Presets now use correct format
+  - Changed `plugins: ['mui-v7']` (legacy) → `plugins: { 'mui-v7': plugin }` (flat config)
+  - Added `name` property to configs: `'mui-v7/recommended'` and `'mui-v7/strict'`
+  - Self-referencing plugin object for proper ESLint 9+ compatibility
+
+### Removed
+- 🗑️ **Removed `no-unstable-grid` rule** - No longer needed
+  - The `Unstable_Grid2` import path is obsolete and rarely used
+  - `no-grid2-import` already covers Grid2 → Grid migration
+  - Simplifies the plugin by removing redundant rule
+
+### Changed
+- ✅ Updated both ESM (`index.js`) and CommonJS (`index.cjs`) exports
+- ✅ Total rules: **8** (was 9) - 6 breaking changes + 2 best practices
+- ✅ All rules still have **100% autofix support**
+
+### Why This Release?
+The preset configs were using legacy ESLint format (`plugins: ['mui-v7']`) which doesn't work correctly with ESLint 9+ flat config. This release fixes the format to use the proper self-referencing plugin object pattern that ESLint 9+ requires.
+
+**Before (broken in ESLint 9+):**
+```javascript
+configs: {
+  recommended: {
+    plugins: ['mui-v7'],  // ❌ Legacy format
+    rules: { ... }
+  }
+}
+```
+
+**After (works in ESLint 9+):**
+```javascript
+plugin.configs.recommended = {
+  name: 'mui-v7/recommended',
+  plugins: {
+    'mui-v7': plugin  // ✅ Flat config format
+  },
+  rules: { ... }
+}
+```
+
+---
+
 ## [1.6.2] - 2025-11-14 - Bugfix: Fixed prefer-slots-api False Positives 🐛
 
 ### Fixed
